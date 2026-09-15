@@ -65,6 +65,13 @@ func step(state: RiderState, input: RiderInput, dt: float) -> RiderState:
 		base_drag *= config.tuck_drag_multiplier
 	var drag_rate := base_drag + _off_road_drag_at(state.position)
 	next.velocity *= maxf(0.0, 1.0 - drag_rate * dt)
+
+	# Braking: a steady deceleration that scrubs speed without reversing.
+	if input.brake:
+		var v := next.velocity.length()
+		if v > 0.0:
+			next.velocity *= maxf(0.0, v - config.brake_decel * dt) / v
+
 	next.velocity = next.velocity.limit_length(config.max_speed)
 	next.position = state.position + next.velocity * dt
 

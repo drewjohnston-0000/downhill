@@ -85,6 +85,11 @@ extends Resource
 ## above min_turn_rate via turn_rate_at) so it never feels like loss of control.
 @export var tuck_turn_multiplier: float = 0.6
 
+## Deceleration (world units/sec^2) applied while braking. A steady, controllable
+## scrub you can feather to set up a corner — stronger than gravity so you can
+## actually slow on the hill, but far from an instant stop.
+@export var brake_decel: float = 300.0
+
 
 ## Turn rate available at the given speed. Decreases slightly with speed but
 ## never below min_turn_rate.

@@ -185,6 +185,26 @@ func test_faster_riders_change_direction_less() -> void:
 	assert_float(slow_turn).is_greater(fast_turn)
 
 
+func test_braking_scrubs_speed_faster_than_coasting() -> void:
+	var sim := _make_sim()
+	var start := RiderState.new(Vector2.ZERO, Vector2.UP * 300.0, -PI / 2.0)
+	var braked := _run(sim, start, RiderInput.new(0.0, true), 30)   # brake = true
+	var coasted := _run(sim, start, RiderInput.new(0.0, false), 30)
+	assert_float(braked.speed()).is_less(coasted.speed())
+
+
+func test_braking_does_not_reverse_or_go_negative() -> void:
+	var sim := _make_sim()
+	# Low speed, braking hard for a while: settles near zero, never negative,
+	# and never flips to travelling backwards along the heading.
+	var start := RiderState.new(Vector2.ZERO, Vector2.UP * 40.0, -PI / 2.0)
+	var after := _run(sim, start, RiderInput.new(0.0, true), 120)
+	assert_float(after.speed()).is_greater_equal(0.0)
+	assert_float(after.speed()).is_less(40.0)
+	# Still heading up the fall line (or stopped), not shoved backwards.
+	assert_float(after.velocity.dot(Vector2.UP)).is_greater_equal(-0.001)
+
+
 func test_speed_is_clamped_to_max() -> void:
 	var cfg := RiderConfig.new()
 	var sim := RiderSimulation.new(cfg)

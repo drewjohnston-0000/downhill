@@ -39,6 +39,7 @@ func _physics_process(delta: float) -> void:
 	var input := RiderInput.new(steer)
 	input.push = Input.is_action_pressed("skate")
 	input.tuck = Input.is_action_pressed("tuck")
+	input.brake = Input.is_action_pressed("brake")
 	_tucking = input.tuck
 	state = _sim.step(state, input, delta)
 	_apply_state()

@@ -73,7 +73,9 @@ func _status_lines() -> PackedStringArray:
 	if target.road_path != null:
 		var off := target.road_path.off_road_amount(s.position)
 		lines.append("offroad  %5.1f  (%s)" % [off, "OFF" if off > 0.0 else "on road"])
-	lines.append("push cd  %.2f   tuck %s  skate %s" % [s.push_cooldown, _yn("tuck"), _yn("skate")])
+	lines.append("push cd  %.2f   tuck %s  skate %s  brake %s" % [
+		s.push_cooldown, _yn("tuck"), _yn("skate"), _yn("brake"),
+	])
 	lines.append("pos  (%.0f, %.0f)" % [s.position.x, s.position.y])
 	return lines
 
