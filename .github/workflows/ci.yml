@@ -19,7 +19,7 @@ jobs:
           python-version: "3.x"
       - run: pip install "gdtoolkit==4.*"
       - name: gdlint
-        run: gdlint sim presentation main test
+        run: gdlint sim presentation main main3d test
 
   unit-tests:
     runs-on: ubuntu-latest

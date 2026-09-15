@@ -1,0 +1,64 @@
+class_name RoadMesh3D
+extends Node3D
+## Builds the 3D road as flat-shaded ribbons from a RoadPath: a wide green grass
+## band and the grey road on top, both following the centerline and the terrain
+## elevation. No art — solid unlit colours so the space reads. Set road_path
+## before adding to the tree.
+
+## Half-width of the grass band flanking the road (world units).
+@export var grass_half_width: float = 2500.0
+@export var road_color: Color = Color(0.30, 0.31, 0.34)
+@export var grass_color: Color = Color(0.42, 0.58, 0.34)
+
+var road_path: RoadPath = null
+
+
+func _ready() -> void:
+	if road_path == null or road_path.centerline.size() < 2:
+		return
+	# Grass sits a touch below the road to avoid z-fighting.
+	add_child(_ribbon(grass_half_width, -1.0, grass_color))
+	add_child(_ribbon(road_path.half_width, 0.0, road_color))
+
+
+# A ribbon mesh (one quad per centerline segment) at the given half-width and
+# vertical offset, with a flat unlit material of the given colour.
+func _ribbon(half_width: float, y_offset: float, color: Color) -> MeshInstance3D:
+	var centerline := road_path.centerline
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var lift := Vector3(0.0, y_offset, 0.0)
+	for i in range(centerline.size() - 1):
+		var la := _edge(i, -half_width) + lift
+		var ra := _edge(i, half_width) + lift
+		var lb := _edge(i + 1, -half_width) + lift
+		var rb := _edge(i + 1, half_width) + lift
+		# Two triangles per quad (material is double-sided, so winding is moot).
+		st.add_vertex(la)
+		st.add_vertex(lb)
+		st.add_vertex(rb)
+		st.add_vertex(la)
+		st.add_vertex(rb)
+		st.add_vertex(ra)
+	var mi := MeshInstance3D.new()
+	mi.mesh = st.commit()
+	mi.material_override = _flat_material(color)
+	return mi
+
+
+# World position of the road edge `offset` units sideways from centerline point i.
+func _edge(i: int, offset: float) -> Vector3:
+	var centerline := road_path.centerline
+	var a: int = maxi(i - 1, 0)
+	var b: int = mini(i + 1, centerline.size() - 1)
+	var tangent := centerline[b] - centerline[a]
+	var normal := Vector2.RIGHT if tangent.length() < 0.0001 else tangent.orthogonal().normalized()
+	return Terrain3D.to_world(centerline[i] + normal * offset)
+
+
+func _flat_material(color: Color) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.albedo_color = color
+	return m

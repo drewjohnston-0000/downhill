@@ -17,7 +17,7 @@ var road_path: RoadPath = null
 ## Current simulation state — read by the camera. Public on purpose.
 var state: RiderState = null
 
-var _sim: RiderSimulation = null
+var _agent: RiderAgent = null
 
 ## Presentation-only: whether the rider is tucking this frame (drives the crouch
 ## visual). Mirrors the last input; the sim is the source of truth for physics.
@@ -27,10 +27,9 @@ var _tucking: bool = false
 func _ready() -> void:
 	if config == null:
 		config = RiderConfig.new()
-	_sim = RiderSimulation.new(config, road_path)
-	# Start gently rolling down the fall line so the descent begins immediately.
-	var start_dir: Vector2 = config.fall_line_dir.normalized()
-	state = RiderState.new(global_position, start_dir * 20.0, start_dir.angle())
+	# Start position was set on this node before it entered the tree.
+	_agent = RiderAgent.new(config, road_path, global_position)
+	state = _agent.state
 	_apply_state()
 
 
@@ -41,7 +40,7 @@ func _physics_process(delta: float) -> void:
 	input.tuck = Input.is_action_pressed("tuck")
 	input.brake = Input.is_action_pressed("brake")
 	_tucking = input.tuck
-	state = _sim.step(state, input, delta)
+	state = _agent.advance(input, delta)
 	_apply_state()
 	queue_redraw()
 

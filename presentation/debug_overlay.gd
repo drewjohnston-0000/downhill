@@ -11,8 +11,9 @@ extends CanvasLayer
 const LOG_DIR := "res://logs"
 const SAMPLE_INTERVAL := 1.0  # seconds between samples while recording
 
-## The rider to inspect (exposes `state`, `config`, `road_path`).
-var target: RiderNode = null
+## The rider to inspect (exposes `state`, `config`, `road_path`) — RiderNode (2D)
+## or RiderBody3D.
+var target: Node = null
 
 var _label: Label = null
 var _logging := false
