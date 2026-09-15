@@ -152,8 +152,17 @@ func test_tuck_reduces_agility() -> void:
 	assert_float(absf(tucked.heading)).is_greater(0.0)
 
 
-func test_grip_falls_off_with_speed() -> void:
+func test_grip_is_constant_by_default() -> void:
+	# On-rails default: grip does not change with speed.
 	var cfg := RiderConfig.new()
+	assert_float(cfg.grip_at(0.0)).is_equal_approx(cfg.grip, 0.001)
+	assert_float(cfg.grip_at(500.0)).is_equal_approx(cfg.grip, 0.001)
+
+
+func test_grip_falloff_mechanism_when_enabled() -> void:
+	# The speed-understeer mechanism still works when dialled in explicitly.
+	var cfg := RiderConfig.new()
+	cfg.grip_speed_falloff = 0.005
 	assert_float(cfg.grip_at(0.0)).is_greater(cfg.grip_at(400.0))
 	assert_float(cfg.grip_at(100000.0)).is_greater_equal(cfg.grip_min)
 	assert_float(cfg.grip_at(0.0)).is_less_equal(cfg.grip)

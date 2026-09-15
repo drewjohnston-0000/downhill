@@ -35,12 +35,14 @@ extends Resource
 ## sideways component of velocity is bled off rather than kept.
 @export var grip: float = 6.0
 
-## Grip at high speed (its floor). Lower than grip so that carrying too much speed
-## into a corner makes the board wash wide (understeer) — you must anticipate.
+## Grip at high speed (its floor), used only when grip_speed_falloff > 0.
 @export var grip_min: float = 2.2
 
 ## How quickly grip falls from `grip` toward `grip_min` as speed rises.
-@export var grip_speed_falloff: float = 0.005
+## Currently 0 = grip is CONSTANT at all speeds ("on rails": the board holds its
+## line whether slow or fast, tucked or not). Raise it (e.g. 0.005) to bring back
+## speed-understeer, where fast corners wash wide and you must anticipate.
+@export var grip_speed_falloff: float = 0.0
 
 ## How fast the applied lean approaches the steering input (per second). Models
 ## the rider leaning into a carve rather than snapping the board — lower = smoother
