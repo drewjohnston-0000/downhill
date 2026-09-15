@@ -5,8 +5,8 @@ extends CanvasLayer
 ## removing it from the scene changes nothing about gameplay.
 ##   F3 - show/hide the readout
 ##   E  - toggle telemetry recording; each recording samples once/sec to the
-##        console and its own timestamped file logs/physics<timestamp>.log
-##        (same naming pattern as Godot's own logs, so runs never mix)
+##        console and its own timestamped file logs/physics<timestamp>.jsonl
+##        (one JSON object per line; Godot-style timestamp so runs never mix)
 
 const LOG_DIR := "res://logs"
 const SAMPLE_INTERVAL := 1.0  # seconds between samples while recording
@@ -53,7 +53,7 @@ func _process(delta: float) -> void:
 		var lines := PackedStringArray([header])
 		if _logging:
 			lines.append("● REC  %d samples" % _sample_count)
-		lines.append_array(_status_lines())
+		lines.append_array(_status_lines(_metrics()))
 		_label.text = "\n".join(lines)
 
 
@@ -64,7 +64,7 @@ func _toggle_recording() -> void:
 		_sample_count = 0
 		# Timestamped filename, colons -> dots, matching Godot's own log naming.
 		var stamp := Time.get_datetime_string_from_system().replace(":", ".")
-		_log_path = "%s/physics%s.log" % [LOG_DIR, stamp]
+		_log_path = "%s/physics%s.jsonl" % [LOG_DIR, stamp]
 		print("[physics] recording started -> %s (every %.0fs)" % [_log_path, SAMPLE_INTERVAL])
 		_write_sample()  # capture t0 immediately
 	else:
@@ -76,9 +76,9 @@ func _ready_to_read() -> bool:
 	return target != null and target.state != null and target.config != null and _label != null
 
 
-# The core readout lines (no key hints), shared by the on-screen display and the
-# log. Callers must ensure _ready_to_read() first.
-func _status_lines() -> PackedStringArray:
+# Raw metrics snapshot, shared by the on-screen display and the JSON log.
+# Callers must ensure _ready_to_read() first.
+func _metrics() -> Dictionary:
 	var s: RiderState = target.state
 	var cfg: RiderConfig = target.config
 	var speed := s.speed()
@@ -88,45 +88,64 @@ func _status_lines() -> PackedStringArray:
 	var eff_turn := cfg.turn_rate_at(speed)
 	if tucking:
 		eff_turn *= cfg.tuck_turn_multiplier
-	var turn_note := " (tuck)" if tucking else ""
 
-	# Heading relative to the fall line: 0 = straight downhill, +right / -left.
-	var rel_deg := rad_to_deg(wrapf(s.heading - cfg.fall_line_dir.angle(), -PI, PI))
-	var side := "R" if rel_deg > 0.5 else ("L" if rel_deg < -0.5 else "--")
-
-	var lines := PackedStringArray()
-	lines.append("speed    %6.1f" % speed)
-	lines.append("heading  %+6.1f deg %s  (0=downhill)" % [rel_deg, side])
-	lines.append("lean     %+.2f  (in %+.1f)" % [s.steer, Input.get_axis("steer_left", "steer_right")])
-	lines.append("grip     %5.2f   turn %5.2f%s" % [cfg.grip_at(speed), eff_turn, turn_note])
+	var off := 0.0
 	if target.road_path != null:
-		var off := target.road_path.off_road_amount(s.position)
-		lines.append("offroad  %5.1f  (%s)" % [off, "OFF" if off > 0.0 else "on road"])
+		off = target.road_path.off_road_amount(s.position)
+
+	return {
+		"t": Time.get_ticks_msec() / 1000.0,
+		"speed": speed,
+		# Heading relative to the fall line: 0 = straight downhill, +right / -left.
+		"heading_deg": rad_to_deg(wrapf(s.heading - cfg.fall_line_dir.angle(), -PI, PI)),
+		"lean": s.steer,
+		"lean_input": Input.get_axis("steer_left", "steer_right"),
+		"grip": cfg.grip_at(speed),
+		"turn": eff_turn,
+		"offroad": off,
+		"on_road": off <= 0.0,
+		"push_cd": s.push_cooldown,
+		"tuck": tucking,
+		"skate": Input.is_action_pressed("skate"),
+		"brake": Input.is_action_pressed("brake"),
+		"x": s.position.x,
+		"y": s.position.y,
+	}
+
+
+# Human-readable readout lines built from a metrics dict.
+func _status_lines(m: Dictionary) -> PackedStringArray:
+	var side := "R" if m["heading_deg"] > 0.5 else ("L" if m["heading_deg"] < -0.5 else "--")
+	var turn_note := " (tuck)" if m["tuck"] else ""
+	var lines := PackedStringArray()
+	lines.append("speed    %6.1f" % m["speed"])
+	lines.append("heading  %+6.1f deg %s  (0=downhill)" % [m["heading_deg"], side])
+	lines.append("lean     %+.2f  (in %+.1f)" % [m["lean"], m["lean_input"]])
+	lines.append("grip     %5.2f   turn %5.2f%s" % [m["grip"], m["turn"], turn_note])
+	lines.append("offroad  %5.1f  (%s)" % [m["offroad"], "on road" if m["on_road"] else "OFF"])
 	lines.append("push cd  %.2f   tuck %s  skate %s  brake %s" % [
-		s.push_cooldown, _yn("tuck"), _yn("skate"), _yn("brake"),
+		m["push_cd"], _b(m["tuck"]), _b(m["skate"]), _b(m["brake"]),
 	])
-	lines.append("pos  (%.0f, %.0f)" % [s.position.x, s.position.y])
+	lines.append("pos  (%.0f, %.0f)" % [m["x"], m["y"]])
 	return lines
 
 
-# Append one timestamped sample to the console and the log file.
+# Append one sample as a JSON object (one line = one record) to file + console.
 func _write_sample() -> void:
-	if not _ready_to_read():
+	if not _ready_to_read() or _log_path == "":
 		return
-	if _log_path == "":
-		return
-	var entry := "t=%.1fs  %s" % [Time.get_ticks_msec() / 1000.0, "  ".join(_status_lines())]
-	print("[physics] ", entry)
+	var line := JSON.stringify(_metrics())
+	print("[physics] ", line)
 	if not DirAccess.dir_exists_absolute(LOG_DIR):
 		DirAccess.make_dir_recursive_absolute(LOG_DIR)
 	var mode := FileAccess.READ_WRITE if FileAccess.file_exists(_log_path) else FileAccess.WRITE
 	var f := FileAccess.open(_log_path, mode)
 	if f != null:
 		f.seek_end()
-		f.store_line(entry)
+		f.store_line(line)
 		f.close()
 	_sample_count += 1
 
 
-func _yn(action: String) -> String:
-	return "Y" if Input.is_action_pressed(action) else "-"
+func _b(v: bool) -> String:
+	return "Y" if v else "-"
