@@ -32,3 +32,9 @@ func _ready() -> void:
 	camera.target = rider
 	camera.position = rider.position
 	add_child(camera)
+
+	# Optional physics readout for playtesting (toggle F3). Remove these two lines
+	# to disable — nothing else depends on it.
+	var debug := DebugOverlay.new()
+	debug.target = rider
+	add_child(debug)
