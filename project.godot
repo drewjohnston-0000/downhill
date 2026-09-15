@@ -16,6 +16,10 @@ boot_splash/image="res://assets/splash.png"
 config/features=PackedStringArray("4.8", "Forward Plus")
 config/icon="res://icon.svg"
 
+[debug]
+
+file_logging/log_path="res://logs/godot.log"
+
 [display]
 
 window/size/viewport_width=720
