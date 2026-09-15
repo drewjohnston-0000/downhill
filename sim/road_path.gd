@@ -48,7 +48,14 @@ static func _dist_point_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
 
 ## Build the Milestone-1 gentle S-curve descent. Fall line is -Y (up-screen),
 ## so the road extends toward decreasing Y.
-static func build_s_curve(length: float, spacing: float, amplitude: float, wavelength: float, start_y: float, half_width: float) -> RoadPath:
+static func build_s_curve(
+	length: float,
+	spacing: float,
+	amplitude: float,
+	wavelength: float,
+	start_y: float,
+	half_width: float,
+) -> RoadPath:
 	var points := PackedVector2Array()
 	var t := 0.0
 	while t <= length:

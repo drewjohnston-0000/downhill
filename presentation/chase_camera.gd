@@ -6,9 +6,6 @@ extends Camera2D
 ## All feel constants live here so camera behaviour can be tuned or disabled
 ## without touching gameplay.
 
-## The node to follow. Expected to expose a `state: RiderState` (the rider node).
-var target: Node = null
-
 ## How far the camera sits ahead of the rider along travel, per unit of speed.
 ## Higher = you see further ahead the faster you go.
 @export var lookahead_per_speed: float = 0.55
@@ -30,6 +27,9 @@ var target: Node = null
 @export var zoom_at_rest: float = 1.0
 @export var zoom_at_top: float = 0.9
 @export var zoom_reference_speed: float = 400.0
+
+## The node to follow. Expected to expose a `state: RiderState` (the rider node).
+var target: Node = null
 
 
 func _ready() -> void:

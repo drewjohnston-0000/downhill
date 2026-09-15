@@ -19,7 +19,12 @@ var heading: float
 var push_cooldown: float
 
 
-func _init(p_position: Vector2 = Vector2.ZERO, p_velocity: Vector2 = Vector2.ZERO, p_heading: float = 0.0, p_push_cooldown: float = 0.0) -> void:
+func _init(
+	p_position: Vector2 = Vector2.ZERO,
+	p_velocity: Vector2 = Vector2.ZERO,
+	p_heading: float = 0.0,
+	p_push_cooldown: float = 0.0,
+) -> void:
 	position = p_position
 	velocity = p_velocity
 	heading = p_heading

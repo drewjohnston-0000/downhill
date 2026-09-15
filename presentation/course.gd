@@ -4,13 +4,13 @@ extends Node2D
 ## + half-width, defined in sim/) and draws a ribbon from it. Road geometry and
 ## boundary maths live in the RoadPath, not here.
 
-## The road geometry to draw. Set before adding to the tree.
-var road_path: RoadPath = null
-
 @export var grass_color: Color = Color(0.42, 0.58, 0.34)
 @export var road_color: Color = Color(0.28, 0.29, 0.32)
 @export var edge_color: Color = Color(0.9, 0.9, 0.92)
 @export var dash_color: Color = Color(0.85, 0.82, 0.5)
+
+## The road geometry to draw. Set before adding to the tree.
+var road_path: RoadPath = null
 
 
 func _ready() -> void:
