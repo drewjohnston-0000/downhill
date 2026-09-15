@@ -4,3 +4,9 @@ reports/
 open-editor.command
 log.log
 docs/_to_delete/
+# Reference/mood media (AI-generated IG clips) — kept locally, not tracked
+docs/concept-board-files/
+docs/moodboard/
+docs/moodboard.html
+docs/lo-fi-alpine-longboarder.png
+docs/lo-fi-alpine-longboarder.png.import
