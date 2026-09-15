@@ -7,10 +7,10 @@ extends Camera3D
 ##
 ## Purely presentational: reads the rider's state, never influences it.
 
-@export var distance: float = 340.0        ## how far behind the rider (world units)
-@export var height: float = 150.0           ## how far above
-@export var look_ahead: float = 260.0       ## how far ahead the camera looks
-@export var look_height: float = 30.0       ## raise the look target off the road
+@export var distance: float = 190.0        ## how far behind the rider (world units)
+@export var height: float = 55.0            ## how far above — near rider height (over-the-shoulder, not a drone)
+@export var look_ahead: float = 420.0       ## how far ahead the camera looks (far = near-level gaze into the vista)
+@export var look_height: float = 55.0       ## match camera height so we look ALONG the road, not down at it
 @export var follow_lerp: float = 5.0        ## position smoothing
 @export var turn_lerp: float = 3.0          ## how fast the aim swings to new headings
 
@@ -32,12 +32,18 @@ func _physics_process(delta: float) -> void:
 	if state == null:
 		return
 
-	# Smooth the forward direction (from heading) to keep the aim steady in carves.
-	var heading_dir := Vector2(cos(state.heading), sin(state.heading))
+	# Aim along the TRAVEL direction (velocity), not the board's heading. In a carve
+	# the board (heading) angles ~20 deg off the line the rider is actually taking;
+	# following velocity keeps the gaze down the road while the deck slips underneath —
+	# body faces the vista, board carves beneath it. Fall back to heading when stopped.
+	var travel_dir: Vector2 = state.velocity
+	if travel_dir.length() < 0.001:
+		travel_dir = Vector2(cos(state.heading), sin(state.heading))
+	travel_dir = travel_dir.normalized()
 	if not _started:
-		_forward = heading_dir
+		_forward = travel_dir
 		_started = true
-	_forward = _forward.lerp(heading_dir, clampf(turn_lerp * delta, 0.0, 1.0)).normalized()
+	_forward = _forward.lerp(travel_dir, clampf(turn_lerp * delta, 0.0, 1.0)).normalized()
 
 	var cam_pos := Terrain3D.to_world(state.position - _forward * distance) + Vector3.UP * height
 	var look_pos := Terrain3D.to_world(state.position + _forward * look_ahead) + Vector3.UP * look_height
