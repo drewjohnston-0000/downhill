@@ -4,15 +4,20 @@ extends CanvasLayer
 ## presentation and fully optional: it only reads state, never influences it, and
 ## removing it from the scene changes nothing about gameplay.
 ##   F3 - show/hide the readout
-##   E  - log the current snapshot to the console and logs/physics_log.txt
+##   E  - toggle telemetry recording (samples once/sec to the console and
+##        logs/physics_log.txt)
 
 const LOG_DIR := "res://logs"
 const LOG_PATH := "res://logs/physics_log.txt"
+const SAMPLE_INTERVAL := 1.0  # seconds between samples while recording
 
 ## The rider to inspect (exposes `state`, `config`, `road_path`).
 var target: RiderNode = null
 
 var _label: Label = null
+var _logging := false
+var _sample_accum := 0.0
+var _sample_count := 0
 
 
 func _ready() -> void:
@@ -31,15 +36,35 @@ func _input(event: InputEvent) -> void:
 	if event.keycode == KEY_F3:
 		_label.visible = not _label.visible
 	elif event.keycode == KEY_E:
-		_log_snapshot()
+		_toggle_recording()
 
 
-func _process(_delta: float) -> void:
-	if not _ready_to_read() or not _label.visible:
+func _process(delta: float) -> void:
+	if not _ready_to_read():
 		return
-	var lines := PackedStringArray(["F3 hide   E log"])
-	lines.append_array(_status_lines())
-	_label.text = "\n".join(lines)
+	if _logging:
+		_sample_accum += delta
+		if _sample_accum >= SAMPLE_INTERVAL:
+			_sample_accum -= SAMPLE_INTERVAL
+			_write_sample()
+	if _label.visible:
+		var header := "F3 hide   E %s" % ("stop rec" if _logging else "record")
+		var lines := PackedStringArray([header])
+		if _logging:
+			lines.append("● REC  %d samples" % _sample_count)
+		lines.append_array(_status_lines())
+		_label.text = "\n".join(lines)
+
+
+func _toggle_recording() -> void:
+	_logging = not _logging
+	if _logging:
+		_sample_accum = 0.0
+		_sample_count = 0
+		print("[physics] recording started (every %.0fs)" % SAMPLE_INTERVAL)
+		_write_sample()  # capture t0 immediately
+	else:
+		print("[physics] recording stopped (%d samples)" % _sample_count)
 
 
 # Whether the rider and its state are available to read.
@@ -80,8 +105,8 @@ func _status_lines() -> PackedStringArray:
 	return lines
 
 
-# Print a timestamped snapshot to the console and append it to the log file.
-func _log_snapshot() -> void:
+# Append one timestamped sample to the console and the log file.
+func _write_sample() -> void:
 	if not _ready_to_read():
 		return
 	var entry := "t=%.1fs  %s" % [Time.get_ticks_msec() / 1000.0, "  ".join(_status_lines())]
@@ -94,6 +119,7 @@ func _log_snapshot() -> void:
 		f.seek_end()
 		f.store_line(entry)
 		f.close()
+	_sample_count += 1
 
 
 func _yn(action: String) -> String:
