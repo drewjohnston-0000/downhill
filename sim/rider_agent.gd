@@ -15,9 +15,10 @@ func _init(
 	p_config: RiderConfig = null,
 	p_road_path: RoadPath = null,
 	p_start_position: Vector2 = Vector2.ZERO,
+	p_elevation: ElevationProfile = null,
 ) -> void:
 	config = p_config if p_config != null else RiderConfig.new()
-	_sim = RiderSimulation.new(config, p_road_path)
+	_sim = RiderSimulation.new(config, p_road_path, p_elevation)
 	var start_dir := config.fall_line_dir.normalized()
 	state = RiderState.new(p_start_position, start_dir * 20.0, start_dir.angle())
 

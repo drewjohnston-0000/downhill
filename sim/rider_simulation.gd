@@ -20,10 +20,19 @@ var config: RiderConfig
 ## Left null in most unit tests (no off-road effect).
 var road_path: RoadPath = null
 
+## Downhill elevation profile. Its grade scales the fall-line pull (steep = faster,
+## flat = you bleed speed). Defaults to flat, so gravity is applied unchanged.
+var elevation: ElevationProfile = null
 
-func _init(p_config: RiderConfig = null, p_road_path: RoadPath = null) -> void:
+
+func _init(
+	p_config: RiderConfig = null,
+	p_road_path: RoadPath = null,
+	p_elevation: ElevationProfile = null,
+) -> void:
 	config = p_config if p_config != null else RiderConfig.new()
 	road_path = p_road_path
+	elevation = p_elevation if p_elevation != null else ElevationProfile.flat()
 
 
 ## Advance the simulation by dt seconds. Returns a NEW state; the input state is
@@ -31,8 +40,11 @@ func _init(p_config: RiderConfig = null, p_road_path: RoadPath = null) -> void:
 func step(state: RiderState, input: RiderInput, dt: float) -> RiderState:
 	var next := state.duplicate_state()
 
-	# 1. Gravity pulls along the fall line.
-	next.velocity += config.fall_line_dir.normalized() * config.gravity * dt
+	# 1. Gravity pulls along the fall line, scaled by the local grade: steep
+	#    pitches accelerate, flat runouts pull weakly so you bleed speed. Uses the
+	#    position BEFORE this step, matching how turn rate reads pre-step speed.
+	var pull := config.gravity * elevation.pull_factor(state.position.y)
+	next.velocity += config.fall_line_dir.normalized() * pull * dt
 
 	# 2. Steering rotates the heading. The applied lean eases toward the input
 	#    (led-into carves, not twitchy); turn rate uses speed BEFORE this step's

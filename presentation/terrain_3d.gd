@@ -5,17 +5,16 @@ extends RefCounted
 ## elevation profile. Every 3D node (road mesh, rider, camera) projects through
 ## here so they always agree.
 ##
-## Stage 0: a constant downhill grade (the whole road tips down at a fixed slope).
-## Stage 1 will replace `elevation()` with a real profile that varies along the
-## course — and, because everything routes through here, that's the only change.
-
-## Downhill grade: world-Y drops by GRADE per unit travelled along the fall line.
-const GRADE := 0.2
+## Height comes from a shared ElevationProfile — the SAME object the sim reads for
+## its fall-line pull, so terrain and physics can never disagree. main3d sets this
+## to the course profile; the default is a plain constant grade so Terrain3D also
+## works standalone (and matches the old Stage 0 look).
+static var profile: ElevationProfile = ElevationProfile.new(0.2, 0.0, 0.0)
 
 
 ## Ground height (world Y) at a point in the sim plane.
 static func elevation(sim_pos: Vector2) -> float:
-	return GRADE * sim_pos.y
+	return profile.height(sim_pos.y)
 
 
 ## Lift a sim-plane point onto the 3D ground: sim x -> world X, sim y -> world Z,

@@ -28,6 +28,18 @@ func test_gravity_accelerates_along_fall_line() -> void:
 	assert_float(after_30.speed()).is_greater(after_1.speed())
 
 
+func test_steeper_grade_accelerates_faster_than_gentle_grade() -> void:
+	# A rolling profile: steepest at y = 0, gentlest half a wavelength down.
+	var elevation := ElevationProfile.new(0.2, 0.1, TAU / 3000.0)
+	var sim := RiderSimulation.new(RiderConfig.new(), null, elevation)
+	var down := Vector2.UP.angle()  # face straight down the fall line
+	var steep_start := RiderState.new(Vector2(0.0, 0.0), Vector2.ZERO, down)
+	var gentle_start := RiderState.new(Vector2(0.0, 1500.0), Vector2.ZERO, down)
+	var steep := _run(sim, steep_start, RiderInput.new(), 30)
+	var gentle := _run(sim, gentle_start, RiderInput.new(), 30)
+	assert_float(steep.speed()).is_greater(gentle.speed())
+
+
 func test_steering_rotates_heading() -> void:
 	var sim := _make_sim()
 	var start := RiderState.new(Vector2.ZERO, Vector2.ZERO, 0.0)

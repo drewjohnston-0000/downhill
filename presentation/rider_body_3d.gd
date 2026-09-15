@@ -11,6 +11,8 @@ extends Node3D
 var config: RiderConfig = null
 var road_path: RoadPath = null
 var state: RiderState = null
+## Shared downhill profile (same object Terrain3D uses); set by main3d.
+var elevation: ElevationProfile = null
 ## Sim-plane start position; set by main3d before adding to the tree.
 var start_position: Vector2 = Vector2.ZERO
 
@@ -20,7 +22,7 @@ var _agent: RiderAgent = null
 func _ready() -> void:
 	if config == null:
 		config = RiderConfig.new()
-	_agent = RiderAgent.new(config, road_path, start_position)
+	_agent = RiderAgent.new(config, road_path, start_position, elevation)
 	state = _agent.state
 
 	var box := BoxMesh.new()
