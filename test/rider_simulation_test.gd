@@ -132,6 +132,26 @@ func test_push_available_again_after_cooldown() -> void:
 	assert_float(held.speed()).is_greater(coasted.speed() + cfg.push_impulse)
 
 
+func test_tuck_sustains_higher_speed() -> void:
+	var sim := _make_sim()
+	# Both head down the fall line from the same speed; one tucks.
+	var start := RiderState.new(Vector2.ZERO, Vector2.UP * 200.0, -PI / 2.0)
+	var tucked := _run(sim, start, RiderInput.new(0.0, false, true), 240)   # tuck = true
+	var upright := _run(sim, start, RiderInput.new(0.0, false, false), 240)
+	assert_float(tucked.speed()).is_greater(upright.speed())
+
+
+func test_tuck_reduces_agility() -> void:
+	var sim := _make_sim()
+	var start := RiderState.new(Vector2.ZERO, Vector2.UP * 200.0, 0.0)
+	# Same full steer, one tucking: the tucked rider turns less this step.
+	var tucked := sim.step(start, RiderInput.new(1.0, false, true), DT)
+	var upright := sim.step(start, RiderInput.new(1.0, false, false), DT)
+	assert_float(absf(tucked.heading)).is_less(absf(upright.heading))
+	# ...but still turns (never fully locked out).
+	assert_float(absf(tucked.heading)).is_greater(0.0)
+
+
 func test_speed_is_clamped_to_max() -> void:
 	var cfg := RiderConfig.new()
 	var sim := RiderSimulation.new(cfg)

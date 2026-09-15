@@ -19,6 +19,10 @@ var state: RiderState = null
 
 var _sim: RiderSimulation = null
 
+## Presentation-only: whether the rider is tucking this frame (drives the crouch
+## visual). Mirrors the last input; the sim is the source of truth for physics.
+var _tucking: bool = false
+
 
 func _ready() -> void:
 	if config == null:
@@ -34,6 +38,8 @@ func _physics_process(delta: float) -> void:
 	var steer: float = Input.get_axis("steer_left", "steer_right")
 	var input := RiderInput.new(steer)
 	input.push = Input.is_action_pressed("skate")
+	input.tuck = Input.is_action_pressed("tuck")
+	_tucking = input.tuck
 	state = _sim.step(state, input, delta)
 	_apply_state()
 	queue_redraw()
@@ -58,8 +64,13 @@ func _draw() -> void:
 	draw_rect(Rect2(-22, -8, 44, 16), deck_color, true)
 	# Trucks/board edge.
 	draw_rect(Rect2(-24, -9, 48, 18), board_color, false, 2.0)
-	# Rider body (a simple wedge leaning into the carve).
-	var body := PackedVector2Array([Vector2(-4, -10), Vector2(10, 0), Vector2(-4, 10)])
-	draw_colored_polygon(body, rider_color)
-	# Head.
-	draw_circle(Vector2(2, 0), 5.0, rider_color.lightened(0.15))
+	# Rider body: a wedge that flattens and reaches forward when tucking, so the
+	# tuck reads at a glance (low and streamlined vs. upright).
+	if _tucking:
+		var body := PackedVector2Array([Vector2(-6, -6), Vector2(16, 0), Vector2(-6, 6)])
+		draw_colored_polygon(body, rider_color)
+		draw_circle(Vector2(9, 0), 4.0, rider_color.lightened(0.15))  # head forward, low
+	else:
+		var body := PackedVector2Array([Vector2(-4, -10), Vector2(10, 0), Vector2(-4, 10)])
+		draw_colored_polygon(body, rider_color)
+		draw_circle(Vector2(2, 0), 5.0, rider_color.lightened(0.15))

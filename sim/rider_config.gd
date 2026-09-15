@@ -63,6 +63,16 @@ extends Resource
 ## stops it being spammed; holding the key auto-skates at this rhythm.
 @export var push_cooldown: float = 0.4
 
+## While tucked, base drag is multiplied by this (lower = faster top end). This
+## is the reward for tucking: sustain a higher speed on straights and crests.
+@export var tuck_drag_multiplier: float = 0.5
+
+## While tucked, turn rate is multiplied by this (lower = less agile). This is
+## the cost of tucking, so it is a real trade-off rather than a free button:
+## tuck to go fast in a straight line, stand up to carve. Kept gentle (stays
+## above min_turn_rate via turn_rate_at) so it never feels like loss of control.
+@export var tuck_turn_multiplier: float = 0.6
+
 
 ## Turn rate available at the given speed. Decreases slightly with speed but
 ## never below min_turn_rate.

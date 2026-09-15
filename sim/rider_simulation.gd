@@ -37,6 +37,8 @@ func step(state: RiderState, input: RiderInput, dt: float) -> RiderState:
 	# 2. Steering rotates the heading. Turn rate uses speed BEFORE this step's
 	#    changes so a frame feels consistent; it stays above min_turn_rate.
 	var turn := config.turn_rate_at(state.speed())
+	if input.tuck:
+		turn *= config.tuck_turn_multiplier  # tucking trades agility for speed
 	next.heading = state.heading + input.steer * turn * dt
 
 	var heading_dir := Vector2.from_angle(next.heading)
@@ -55,7 +57,11 @@ func step(state: RiderState, input: RiderInput, dt: float) -> RiderState:
 	next.velocity = next.velocity.lerp(on_line_velocity, grip_t)
 
 	# 5. Drag (plus gentle off-road drag), speed cap, integrate.
-	var drag_rate := config.drag + _off_road_drag_at(state.position)
+	# Tucking lowers aero drag (higher sustained speed); grass drag is unaffected.
+	var base_drag := config.drag
+	if input.tuck:
+		base_drag *= config.tuck_drag_multiplier
+	var drag_rate := base_drag + _off_road_drag_at(state.position)
 	next.velocity *= maxf(0.0, 1.0 - drag_rate * dt)
 	next.velocity = next.velocity.limit_length(config.max_speed)
 	next.position = state.position + next.velocity * dt
