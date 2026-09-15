@@ -18,17 +18,23 @@ var heading: float
 ## Seconds remaining until the next skate push is allowed (0 = ready).
 var push_cooldown: float
 
+## Currently applied lean (-1..1). Eases toward the steering input rather than
+## snapping, so carves feel led-into rather than twitchy.
+var steer: float
+
 
 func _init(
 	p_position: Vector2 = Vector2.ZERO,
 	p_velocity: Vector2 = Vector2.ZERO,
 	p_heading: float = 0.0,
 	p_push_cooldown: float = 0.0,
+	p_steer: float = 0.0,
 ) -> void:
 	position = p_position
 	velocity = p_velocity
 	heading = p_heading
 	push_cooldown = p_push_cooldown
+	steer = p_steer
 
 
 ## Current scalar speed (world units / sec).
@@ -39,4 +45,4 @@ func speed() -> float:
 ## A deep copy — used by the simulation to return a new state rather than
 ## mutating the caller's, keeping step() pure and easy to test.
 func duplicate_state() -> RiderState:
-	return RiderState.new(position, velocity, heading, push_cooldown)
+	return RiderState.new(position, velocity, heading, push_cooldown, steer)

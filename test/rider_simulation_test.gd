@@ -152,6 +152,39 @@ func test_tuck_reduces_agility() -> void:
 	assert_float(absf(tucked.heading)).is_greater(0.0)
 
 
+func test_grip_falls_off_with_speed() -> void:
+	var cfg := RiderConfig.new()
+	assert_float(cfg.grip_at(0.0)).is_greater(cfg.grip_at(400.0))
+	assert_float(cfg.grip_at(100000.0)).is_greater_equal(cfg.grip_min)
+	assert_float(cfg.grip_at(0.0)).is_less_equal(cfg.grip)
+
+
+func test_lean_eases_in_rather_than_snapping() -> void:
+	var sim := _make_sim()
+	var start := RiderState.new(Vector2.ZERO, Vector2.UP * 100.0, -PI / 2.0)  # steer starts at 0
+	var after_1 := sim.step(start, RiderInput.new(1.0), DT)
+	# One frame of full-right input does not jump straight to full lean...
+	assert_float(after_1.steer).is_greater(0.0)
+	assert_float(after_1.steer).is_less(1.0)
+	# ...but held, it converges toward it.
+	var after_1s := _run(sim, start, RiderInput.new(1.0), 60)
+	assert_float(after_1s.steer).is_greater(0.9)
+
+
+func test_faster_riders_change_direction_less() -> void:
+	# Speed understeer: carrying more speed washes wider, so the same steering
+	# input rotates a fast rider's line less than a slow rider's.
+	var sim := _make_sim()
+	var slow := RiderState.new(Vector2.ZERO, Vector2.UP * 80.0, -PI / 2.0)
+	var fast := RiderState.new(Vector2.ZERO, Vector2.UP * 450.0, -PI / 2.0)
+	var steer := RiderInput.new(1.0)
+	var slow_after := _run(sim, slow, steer, 20)
+	var fast_after := _run(sim, fast, steer, 20)
+	var slow_turn := absf(Vector2.UP.angle_to(slow_after.velocity.normalized()))
+	var fast_turn := absf(Vector2.UP.angle_to(fast_after.velocity.normalized()))
+	assert_float(slow_turn).is_greater(fast_turn)
+
+
 func test_speed_is_clamped_to_max() -> void:
 	var cfg := RiderConfig.new()
 	var sim := RiderSimulation.new(cfg)

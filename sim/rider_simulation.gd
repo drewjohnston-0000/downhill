@@ -34,12 +34,14 @@ func step(state: RiderState, input: RiderInput, dt: float) -> RiderState:
 	# 1. Gravity pulls along the fall line.
 	next.velocity += config.fall_line_dir.normalized() * config.gravity * dt
 
-	# 2. Steering rotates the heading. Turn rate uses speed BEFORE this step's
-	#    changes so a frame feels consistent; it stays above min_turn_rate.
+	# 2. Steering rotates the heading. The applied lean eases toward the input
+	#    (led-into carves, not twitchy); turn rate uses speed BEFORE this step's
+	#    changes so a frame feels consistent and stays above min_turn_rate.
+	next.steer = lerpf(state.steer, input.steer, clampf(config.lean_rate * dt, 0.0, 1.0))
 	var turn := config.turn_rate_at(state.speed())
 	if input.tuck:
 		turn *= config.tuck_turn_multiplier  # tucking trades agility for speed
-	next.heading = state.heading + input.steer * turn * dt
+	next.heading = state.heading + next.steer * turn * dt
 
 	var heading_dir := Vector2.from_angle(next.heading)
 
@@ -53,7 +55,7 @@ func step(state: RiderState, input: RiderInput, dt: float) -> RiderState:
 	# 4. Grip sheds the sideways component of velocity toward the heading.
 	var forward_speed := next.velocity.dot(heading_dir)  # signed speed along heading
 	var on_line_velocity := heading_dir * forward_speed  # velocity with sideways removed
-	var grip_t := clampf(config.grip * dt, 0.0, 1.0)
+	var grip_t := clampf(config.grip_at(state.speed()) * dt, 0.0, 1.0)
 	next.velocity = next.velocity.lerp(on_line_velocity, grip_t)
 
 	# 5. Drag (plus gentle off-road drag), speed cap, integrate.

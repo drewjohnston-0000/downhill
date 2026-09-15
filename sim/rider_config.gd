@@ -29,14 +29,26 @@ extends Resource
 ## (roughly gravity / drag), here ~400.
 @export var drag: float = 0.15
 
-## How strongly the board resists sideways sliding, i.e. how quickly velocity
-## snaps to point along the heading. HIGH = forgiving (the board goes where you
-## point). This is also what makes carving across the slope gently scrub speed:
-## the sideways component of velocity is bled off rather than kept.
+## How strongly the board resists sideways sliding at LOW speed, i.e. how quickly
+## velocity snaps to point along the heading. HIGH = planted (the board goes where
+## you point). Also what makes carving across the slope gently scrub speed: the
+## sideways component of velocity is bled off rather than kept.
 @export var grip: float = 6.0
 
+## Grip at high speed (its floor). Lower than grip so that carrying too much speed
+## into a corner makes the board wash wide (understeer) — you must anticipate.
+@export var grip_min: float = 2.2
+
+## How quickly grip falls from `grip` toward `grip_min` as speed rises.
+@export var grip_speed_falloff: float = 0.005
+
+## How fast the applied lean approaches the steering input (per second). Models
+## the rider leaning into a carve rather than snapping the board — lower = smoother
+## and more deliberate, higher = twitchier.
+@export var lean_rate: float = 8.0
+
 ## Turn rate (radians/sec) at low speed, before speed falloff.
-@export var base_turn_rate: float = 3.2
+@export var base_turn_rate: float = 2.8
 
 ## How much speed reduces turn rate. SMALL, so turning stays responsive even
 ## when fast — enough weight to feel committed, not loss of control.
@@ -78,3 +90,9 @@ extends Resource
 ## never below min_turn_rate.
 func turn_rate_at(speed: float) -> float:
 	return maxf(min_turn_rate, base_turn_rate / (1.0 + speed * turn_speed_falloff))
+
+
+## Grip available at the given speed. Falls from `grip` toward `grip_min` as speed
+## rises, so fast corners wash wide (understeer) while slow ones stay planted.
+func grip_at(speed: float) -> float:
+	return maxf(grip_min, grip / (1.0 + speed * grip_speed_falloff))
