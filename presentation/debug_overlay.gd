@@ -4,11 +4,11 @@ extends CanvasLayer
 ## presentation and fully optional: it only reads state, never influences it, and
 ## removing it from the scene changes nothing about gameplay.
 ##   F3 - show/hide the readout
-##   E  - toggle telemetry recording (samples once/sec to the console and
-##        logs/physics_log.txt)
+##   E  - toggle telemetry recording; each recording samples once/sec to the
+##        console and its own timestamped file logs/physics<timestamp>.log
+##        (same naming pattern as Godot's own logs, so runs never mix)
 
 const LOG_DIR := "res://logs"
-const LOG_PATH := "res://logs/physics_log.txt"
 const SAMPLE_INTERVAL := 1.0  # seconds between samples while recording
 
 ## The rider to inspect (exposes `state`, `config`, `road_path`).
@@ -18,6 +18,7 @@ var _label: Label = null
 var _logging := false
 var _sample_accum := 0.0
 var _sample_count := 0
+var _log_path := ""  # timestamped file for the current recording
 
 
 func _ready() -> void:
@@ -61,10 +62,13 @@ func _toggle_recording() -> void:
 	if _logging:
 		_sample_accum = 0.0
 		_sample_count = 0
-		print("[physics] recording started (every %.0fs)" % SAMPLE_INTERVAL)
+		# Timestamped filename, colons -> dots, matching Godot's own log naming.
+		var stamp := Time.get_datetime_string_from_system().replace(":", ".")
+		_log_path = "%s/physics%s.log" % [LOG_DIR, stamp]
+		print("[physics] recording started -> %s (every %.0fs)" % [_log_path, SAMPLE_INTERVAL])
 		_write_sample()  # capture t0 immediately
 	else:
-		print("[physics] recording stopped (%d samples)" % _sample_count)
+		print("[physics] recording stopped (%d samples) -> %s" % [_sample_count, _log_path])
 
 
 # Whether the rider and its state are available to read.
@@ -109,12 +113,14 @@ func _status_lines() -> PackedStringArray:
 func _write_sample() -> void:
 	if not _ready_to_read():
 		return
+	if _log_path == "":
+		return
 	var entry := "t=%.1fs  %s" % [Time.get_ticks_msec() / 1000.0, "  ".join(_status_lines())]
 	print("[physics] ", entry)
 	if not DirAccess.dir_exists_absolute(LOG_DIR):
 		DirAccess.make_dir_recursive_absolute(LOG_DIR)
-	var mode := FileAccess.READ_WRITE if FileAccess.file_exists(LOG_PATH) else FileAccess.WRITE
-	var f := FileAccess.open(LOG_PATH, mode)
+	var mode := FileAccess.READ_WRITE if FileAccess.file_exists(_log_path) else FileAccess.WRITE
+	var f := FileAccess.open(_log_path, mode)
 	if f != null:
 		f.seek_end()
 		f.store_line(entry)
