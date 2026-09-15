@@ -4,7 +4,7 @@ extends CanvasLayer
 ## presentation and fully optional: it only reads state, never influences it, and
 ## removing it from the scene changes nothing about gameplay.
 ##   F3 - show/hide the readout
-##   F4 - log the current snapshot to the console and user://physics_log.txt
+##   E  - log the current snapshot to the console and user://physics_log.txt
 
 const LOG_PATH := "user://physics_log.txt"
 
@@ -29,14 +29,14 @@ func _input(event: InputEvent) -> void:
 		return
 	if event.keycode == KEY_F3:
 		_label.visible = not _label.visible
-	elif event.keycode == KEY_F4:
+	elif event.keycode == KEY_E:
 		_log_snapshot()
 
 
 func _process(_delta: float) -> void:
 	if not _ready_to_read() or not _label.visible:
 		return
-	var lines := PackedStringArray(["F3 hide   F4 log"])
+	var lines := PackedStringArray(["F3 hide   E log"])
 	lines.append_array(_status_lines())
 	_label.text = "\n".join(lines)
 
