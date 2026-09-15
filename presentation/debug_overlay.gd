@@ -4,9 +4,10 @@ extends CanvasLayer
 ## presentation and fully optional: it only reads state, never influences it, and
 ## removing it from the scene changes nothing about gameplay.
 ##   F3 - show/hide the readout
-##   E  - log the current snapshot to the console and user://physics_log.txt
+##   E  - log the current snapshot to the console and logs/physics_log.txt
 
-const LOG_PATH := "user://physics_log.txt"
+const LOG_DIR := "res://logs"
+const LOG_PATH := "res://logs/physics_log.txt"
 
 ## The rider to inspect (exposes `state`, `config`, `road_path`).
 var target: RiderNode = null
@@ -83,6 +84,8 @@ func _log_snapshot() -> void:
 		return
 	var entry := "t=%.1fs  %s" % [Time.get_ticks_msec() / 1000.0, "  ".join(_status_lines())]
 	print("[physics] ", entry)
+	if not DirAccess.dir_exists_absolute(LOG_DIR):
+		DirAccess.make_dir_recursive_absolute(LOG_DIR)
 	var mode := FileAccess.READ_WRITE if FileAccess.file_exists(LOG_PATH) else FileAccess.WRITE
 	var f := FileAccess.open(LOG_PATH, mode)
 	if f != null:
