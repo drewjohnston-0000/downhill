@@ -1,0 +1,6 @@
+.godot/
+.DS_Store
+reports/
+open-editor.command
+log.log
+docs/_to_delete/
