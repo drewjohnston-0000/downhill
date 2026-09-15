@@ -12,6 +12,7 @@ config_version=5
 
 config/name="downhill"
 run/main_scene="res://main/main.tscn"
+boot_splash/image="res://assets/splash.png"
 config/features=PackedStringArray("4.8", "Forward Plus")
 config/icon="res://icon.svg"
 
