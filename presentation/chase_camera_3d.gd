@@ -41,14 +41,20 @@ func _physics_process(delta: float) -> void:
 	# the board (heading) angles ~20 deg off the line the rider is actually taking;
 	# following velocity keeps the gaze down the road while the deck slips underneath —
 	# body faces the vista, board carves beneath it. Fall back to heading when stopped.
-	var travel_dir: Vector2 = state.velocity
-	if travel_dir.length() < 0.001:
-		travel_dir = Vector2(cos(state.heading), sin(state.heading))
-	travel_dir = travel_dir.normalized()
+	# Aim along TRAVEL (velocity). When stopped — parked at the top, or braked to rest
+	# past the finish — velocity has no direction, so FREEZE the last aim rather than
+	# snapping to the board's heading: the heading can have drifted far (e.g. during the
+	# finish brake), which would swing the view sideways into a level gaze and let the
+	# 2D vista/horizon draw over the poles. Seed the aim from the heading on frame one
+	# (facing down the hill before the first push).
+	var vel: Vector2 = state.velocity
+	var moving := vel.length() >= 1.0
 	if not _started:
-		_forward = travel_dir
+		_forward = vel.normalized() if moving else Vector2(cos(state.heading), sin(state.heading))
 		_started = true
-	_forward = _forward.lerp(travel_dir, clampf(turn_lerp * delta, 0.0, 1.0)).normalized()
+	elif moving:
+		var travel_dir := vel.normalized()
+		_forward = _forward.lerp(travel_dir, clampf(turn_lerp * delta, 0.0, 1.0)).normalized()
 
 	# Horizontal placement comes from the behind/ahead points; their HEIGHTS mostly
 	# do not. Sampling terrain height far ahead/behind makes the pitch flail across
