@@ -1,0 +1,33 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			// Runs the project's own gdtoolkit gdlint (./lint.sh) — the SAME tool and
+			// gdlintrc config as CI, using your locally installed gdlint. Results show
+			// in the Problems panel. Run with Cmd+Shift+B (default build task).
+			"label": "gdlint",
+			"type": "shell",
+			"command": "./lint.sh",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"reveal": "silent",
+				"clear": true
+			},
+			"problemMatcher": {
+				"owner": "gdlint",
+				"source": "gdlint",
+				"fileLocation": ["relative", "${workspaceFolder}"],
+				"pattern": {
+					"regexp": "^(.+?):(\\d+): (Error|Warning): (.+)$",
+					"file": 1,
+					"line": 2,
+					"severity": 3,
+					"message": 4
+				}
+			}
+		}
+	]
+}
