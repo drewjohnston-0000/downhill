@@ -1,0 +1,7 @@
+{
+	// Recommended so live gdlint-on-save works (runs the gdlint task from tasks.json
+	// on every .gd save; see settings.json → triggerTaskOnSave).
+	"recommendations": [
+		"gruntfuggly.triggertaskonsave"
+	]
+}

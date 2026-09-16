@@ -4,5 +4,15 @@
 	// gdlintrc, so turn it off to avoid a second, conflicting set of warnings.
 	"godotFormatter.enableLinter": false,
 	// If its formatter is ever used, keep line length in step with gdlintrc (120).
-	"godotFormatter.maxLineLength": 120
+	"godotFormatter.maxLineLength": 120,
+
+	// Live linting: the "Trigger Task on Save" extension
+	// (Gruntfuggly.triggertaskonsave) runs the "gdlint" task (see tasks.json) on
+	// every .gd save. That task's problem matcher paints results into the Problems
+	// panel — so it's live AND uses the exact same gdtoolkit + gdlintrc as CI.
+	"triggerTaskOnSave.tasks": {
+		"gdlint": ["**/*.gd"]
+	},
+	"triggerTaskOnSave.showStatusBarToggle": true,
+	"triggerTaskOnSave.restart": true
 }
