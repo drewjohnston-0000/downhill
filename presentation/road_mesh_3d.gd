@@ -16,9 +16,13 @@ var road_path: RoadPath = null
 func _ready() -> void:
 	if road_path == null or road_path.centerline.size() < 2:
 		return
-	# Grass sits a touch below the road to avoid z-fighting. It widens along world-X
-	# (not the road normal) so a wide band never samples elevation far down the hill.
-	add_child(_ribbon(grass_half_width, -1.0, grass_color, false))
+	# Grass sits below the road. The gap is generous (not just anti-z-fighting): the
+	# road widens along its normal, so on a curve a single road quad spans a long
+	# stretch of the fall line and sags a few units below the true crest as a flat
+	# approximation. The grass (short world-X quads) hugs the surface, so too small a
+	# gap lets grass poke through the sagging road. It widens along world-X (not the
+	# road normal) so a wide band never samples elevation far down the hill.
+	add_child(_ribbon(grass_half_width, -8.0, grass_color, false))
 	add_child(_ribbon(road_path.half_width, 0.0, road_color, true))
 
 
