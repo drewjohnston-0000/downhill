@@ -35,6 +35,10 @@ func _ready() -> void:
 	road.road_path = road_path
 	add_child(road)
 
+	var posts := RoadPosts3D.new()
+	posts.road_path = road_path
+	add_child(posts)
+
 	var rider := RiderBody3D.new()
 	rider.config = config
 	rider.road_path = road_path
