@@ -99,27 +99,30 @@ func _ready() -> void:
 # into a lit place. (Slice A of the painterly skin; see docs/painterly-skin-spec.md.)
 func _make_sky() -> WorldEnvironment:
 	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_horizon_color = Color(0.78, 0.86, 0.93)
-	sky_mat.sky_top_color = Color(0.26, 0.52, 0.88)
-	# Below the horizon reads as pale haze (matching the fog), not a muddy band.
-	sky_mat.ground_horizon_color = Color(0.80, 0.86, 0.90)
-	sky_mat.ground_bottom_color = Color(0.74, 0.81, 0.85)
+	# Golden-hour sky (splash): warm cream/peach at the horizon, soft blue above.
+	sky_mat.sky_horizon_color = Color(0.96, 0.90, 0.78)
+	sky_mat.sky_top_color = Color(0.40, 0.60, 0.82)
+	# Below the horizon reads as warm pale haze, not a muddy band.
+	sky_mat.ground_horizon_color = Color(0.90, 0.88, 0.82)
+	sky_mat.ground_bottom_color = Color(0.82, 0.82, 0.78)
 	sky_mat.ground_curve = 0.02
 	var sky := Sky.new()
 	sky.sky_material = sky_mat
 	var env := Environment.new()
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
-	# Cool skylight fill so shadowed faces read blue-grey, not black.
+	# Cool skylight fill so shadowed faces read blue-grey against the warm sun, but
+	# soft (the splash is gentle, low-contrast golden hour, not hard cel).
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.62, 0.72, 0.88)
-	env.ambient_light_energy = 0.5
-	# Distance haze: near ground crisp, far hill fades — atmospheric depth.
+	env.ambient_light_color = Color(0.56, 0.64, 0.80)
+	env.ambient_light_energy = 0.55
+	# Layered haze: the far course/hill fades to warm pale, like the splash's
+	# receding headlands — the strongest painterly depth cue for flat geometry.
 	env.fog_enabled = true
 	env.fog_mode = Environment.FOG_MODE_DEPTH
-	env.fog_light_color = Color(0.80, 0.86, 0.93)
-	env.fog_depth_begin = 1500.0
-	env.fog_depth_end = 16000.0
+	env.fog_light_color = Color(0.88, 0.88, 0.83)
+	env.fog_depth_begin = 800.0
+	env.fog_depth_end = 14000.0
 	env.fog_depth_curve = 0.6
 	env.fog_sky_affect = 0.0
 	var we := WorldEnvironment.new()
@@ -132,8 +135,8 @@ func _make_sky() -> WorldEnvironment:
 func _make_sun() -> DirectionalLight3D:
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-48.0, 55.0, 0.0)
-	sun.light_color = Color(1.0, 0.93, 0.80)
-	sun.light_energy = 1.3
+	sun.light_color = Color(1.0, 0.91, 0.74)  # warm low-sun gold
+	sun.light_energy = 1.5
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 4000.0
 	return sun

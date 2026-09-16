@@ -40,6 +40,9 @@ func _ready() -> void:
 	mesh.mesh = box
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.2, 0.45, 0.85)
+	# Cel look: a hard light/shadow terminator (banded), matte (no highlights).
+	mat.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
+	mat.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
 	mesh.material_override = mat
 	add_child(mesh)
 	_apply()

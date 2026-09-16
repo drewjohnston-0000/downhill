@@ -91,4 +91,7 @@ func _flat_material(color: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
 	m.albedo_color = color
+	# Cel look: a hard light/shadow terminator (banded), matte (no highlights).
+	m.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
+	m.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
 	return m

@@ -7,8 +7,8 @@ extends Node3D
 
 ## Half-width of the grass band flanking the road (world units).
 @export var grass_half_width: float = 2500.0
-@export var road_color: Color = Color(0.30, 0.31, 0.34)
-@export var grass_color: Color = Color(0.42, 0.58, 0.34)
+@export var road_color: Color = Color(0.44, 0.47, 0.52)   ## cool blue-grey asphalt (splash)
+@export var grass_color: Color = Color(0.37, 0.48, 0.29)  ## muted olive/sage green
 
 var road_path: RoadPath = null
 
@@ -75,4 +75,7 @@ func _flat_material(color: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
 	m.albedo_color = color
+	# Cel look: a hard light/shadow terminator (banded), matte (no highlights).
+	m.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
+	m.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
 	return m

@@ -9,10 +9,15 @@ flat boxes, not for the reference pixel-for-pixel.
 
 ## Target vs baseline (the A/B)
 
-- **Target frame:** `docs/concept-board-files/girl-coogee-1.png` — warm low sun on a
-  light road with cool cast shadows, a deep saturated sky, lush roadside greens, and
-  the far town/headland fading into atmospheric haze. Soft painterly (not photoreal),
-  strong forward-into-the-vista depth — which is already our chase-cam framing.
+- **Primary target:** `assets/splash.png` — our own boot image, so matching it makes
+  splash→gameplay coherent. Serene golden hour: **cool blue-grey road** with white
+  edge + centre-dash lines, **warm cream horizon glow** fading to soft blue, **muted
+  olive/sage greens**, cool soft shadows, and headlands/hills receding in warm-pale
+  atmospheric haze. Soft and low-contrast (atmosphere-led), which is what flat-shaded
+  geometry can actually achieve — and it fits the "calm, not fearful" ethos.
+- **Secondary reference:** `docs/concept-board-files/girl-coogee-1.png` — punchier,
+  higher-contrast, more saturated. Useful for energy cues, but its crisp painted detail
+  is out of reach for flat boxes; the splash is the palette/light anchor.
 - **Baseline frame:** current flat-unlit look (capture to `logs/baseline.png`). Its
   specific faults to fix: no sun/shadow (flat fill), a muddy brown horizon band, flat
   lifeless surfaces, no depth/haze separating near from far.
@@ -64,19 +69,23 @@ capture-verified on Metal. Playtest-confirmed.
   4. Road stays clearly distinct from grass; posts stay legible. (readability guard)
   5. The frame reads warmer / more "lit scene", less "raw 3D render", vs the baseline.
 
-### Slice B — Toon / material character (only if A lands and we want more)
+### Slice B — Toon / material character + splash palette (DONE)
 
-The "drawn" surface quality.
+The "drawn" surface quality, re-anchored to the splash.
+Landed: built-in `DIFFUSE_TOON` + `SPECULAR_DISABLED` on all materials (matte, banded
+where geometry catches it — box, posts, terrain rolls); splash palette (cool blue-grey
+road, muted olive grass, warm golden-hour sky), warm low sun / cool soft ambient, and
+stronger depth haze. Warm/cool split and readability both hold. Note: on flat up-facing
+road/grass the toon ramp gives one band, so the cel quality reads on upright/rolled
+geometry, not the road — an accepted limit of flat shading (the palette/haze carry it).
 
-- **Whitelist (to be confirmed when we get here):** a cel/toon shading ramp on the
-  surface materials; a warm/cool split (warm sun, cool shadow); grass/road colour pass
-  toward the reference palette. Still no post-process pipeline.
-- **Acceptance:** surfaces read cel-shaded (banded light, not smooth); warm-sun /
-  cool-shadow contrast is visible; readability guard still holds.
+### Slice C — Splash content cues (optional; each sub-item its own tiny S)
 
-### Slice C — Polish (optional; each sub-item is its own tiny S, pick à la carte)
-
-Soft clouds · a yellow road centreline · roadside foliage clumps · subtle colour grade.
+In priority order toward the splash:
+1. **White road lines** — centre dashes + gutter (edge) lines. (splash uses white,
+   not yellow.) Highest-impact, cheapest.
+2. **Soft clouds** — built-in `ProceduralSkyMaterial` cloud controls.
+3. Distant ridge/headland silhouette · roadside foliage clumps · subtle colour grade.
 
 ## Non-goals — explicitly OUT this round (deferred XL)
 
