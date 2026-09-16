@@ -1,9 +1,8 @@
 class_name RiderBody3D
 extends Node3D
-## 3D presentation of the rider. Runs the shared RiderAgent (same sim as the 2D
-## game), reads the same input actions, and drops a placeholder box on the road.
-## Exposes state/config/road_path so the camera and debug overlay can read it,
-## exactly like the 2D RiderNode.
+## 3D presentation of the rider. Runs the shared RiderAgent, reads the input
+## actions, and drops a placeholder box on the road. Exposes state/config/road_path
+## so the camera and debug overlay can read it.
 
 ## Height of the box centre above the road surface.
 @export var ride_height: float = 14.0
@@ -11,9 +10,9 @@ extends Node3D
 var config: RiderConfig = null
 var road_path: RoadPath = null
 var state: RiderState = null
-## Shared downhill profile (same object Terrain3D uses); set by main3d.
+## Shared downhill profile (same object Terrain3D uses); set by main.gd.
 var elevation: ElevationProfile = null
-## Sim-plane start position; set by main3d before adding to the tree.
+## Sim-plane start position; set by main.gd before adding to the tree.
 var start_position: Vector2 = Vector2.ZERO
 ## When true, the rider starts parked and must be kicked off (skate) to roll.
 var start_at_rest: bool = false

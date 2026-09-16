@@ -9,4 +9,4 @@ if ! command -v gdlint >/dev/null 2>&1; then
 	exit 1
 fi
 
-exec gdlint sim presentation main main3d test
+exec gdlint sim presentation main test

@@ -1,8 +1,8 @@
 class_name RoadPath
 extends RefCounted
 ## Pure geometry of the road: a centerline polyline plus a half-width. No Node,
-## no rendering. Both the simulation (off-road drag) and the Course node
-## (drawing) read from this, so road/gameplay geometry never lives in
+## no rendering. Both the simulation (off-road drag) and the presentation (road
+## mesh, posts) read from this, so road/gameplay geometry never lives in
 ## presentation code and boundary maths stays unit-testable.
 
 var centerline: PackedVector2Array
@@ -44,26 +44,6 @@ static func _dist_point_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
 	if denom > 0.0:
 		t = clampf((p - a).dot(ab) / denom, 0.0, 1.0)
 	return p.distance_to(a + ab * t)
-
-
-## Build the Milestone-1 gentle S-curve descent. Fall line is -Y (up-screen),
-## so the road extends toward decreasing Y.
-static func build_s_curve(
-	length: float,
-	spacing: float,
-	amplitude: float,
-	wavelength: float,
-	start_y: float,
-	half_width: float,
-) -> RoadPath:
-	var points := PackedVector2Array()
-	var t := 0.0
-	while t <= length:
-		var y := start_y - t
-		var x := amplitude * sin(t / wavelength * TAU)
-		points.append(Vector2(x, y))
-		t += spacing
-	return RoadPath.new(points, half_width)
 
 
 ## Build a course from a sequence of segments, giving the run rhythm (straights,

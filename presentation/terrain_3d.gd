@@ -6,7 +6,7 @@ extends RefCounted
 ## here so they always agree.
 ##
 ## Height comes from a shared ElevationProfile — the SAME object the sim reads for
-## its fall-line pull, so terrain and physics can never disagree. main3d sets this
+## its fall-line pull, so terrain and physics can never disagree. main.gd sets this
 ## to the course profile; the default is a plain constant grade so Terrain3D also
 ## works standalone (and matches the old Stage 0 look).
 static var profile: ElevationProfile = ElevationProfile.new(0.2, 0.0, 0.0)

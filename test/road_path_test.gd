@@ -26,14 +26,6 @@ func test_point_beyond_edge_is_off_road_by_the_overshoot() -> void:
 	assert_bool(road.is_off_road(Vector2(300, -500))).is_true()
 
 
-func test_build_s_curve_starts_on_axis_and_samples_the_length() -> void:
-	var road := RoadPath.build_s_curve(2000.0, 40.0, 300.0, 1000.0, 200.0, 150.0)
-	assert_int(road.centerline.size()).is_greater(1)
-	# First sample sits at x=0, y=start_y.
-	assert_vector(road.centerline[0]).is_equal_approx(Vector2(0.0, 200.0), Vector2(0.001, 0.001))
-	assert_float(road.half_width).is_equal_approx(150.0, 0.001)
-
-
 func test_build_course_straight_segment_stays_on_the_fall_line() -> void:
 	# A single slope-0 segment: x never leaves the axis, y descends by the length.
 	var road := RoadPath.build_course([{"length": 2000.0, "slope": 0.0}], 40.0, 200.0, 150.0)

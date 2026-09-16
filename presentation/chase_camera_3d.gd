@@ -10,19 +10,19 @@ extends Camera3D
 ##
 ## Purely presentational: reads the rider's state, never influences it.
 
-@export var distance: float = 190.0        ## how far behind the rider (world units)
-@export var height: float = 55.0            ## how far above — near rider height (over-the-shoulder, not a drone)
-@export var look_ahead: float = 420.0       ## how far ahead the camera looks (far = near-level gaze into the vista)
-@export var look_height: float = 55.0       ## match camera height so we look ALONG the road, not down at it
-@export var follow_lerp: float = 5.0        ## horizontal position smoothing
-@export var height_lerp: float = 2.0        ## vertical smoothing (slower: filters roll bob)
-@export var min_clearance: float = 30.0     ## keep at least this far above the ground beneath the camera
-@export var turn_lerp: float = 3.0          ## how fast the aim swings to new headings
+@export var distance: float = 190.0 ## how far behind the rider (world units)
+@export var height: float = 55.0 ## how far above — near rider height (over-the-shoulder, not a drone)
+@export var look_ahead: float = 420.0 ## how far ahead the camera looks (far = near-level gaze into the vista)
+@export var look_height: float = 55.0 ## match camera height so we look ALONG the road, not down at it
+@export var follow_lerp: float = 5.0 ## horizontal position smoothing
+@export var height_lerp: float = 2.0 ## vertical smoothing (slower: filters roll bob)
+@export var min_clearance: float = 30.0 ## keep at least this far above the ground beneath the camera
 
+@export var turn_lerp: float = 3.0 ## how fast the aim swings to new headings
 ## The rider to follow (exposes `state`).
 var target: Node = null
 
-var _forward := Vector2.DOWN  # smoothed sim-plane forward direction
+var _forward := Vector2.DOWN # smoothed sim-plane forward direction
 var _started := false
 
 
