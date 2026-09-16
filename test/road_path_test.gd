@@ -32,3 +32,31 @@ func test_build_s_curve_starts_on_axis_and_samples_the_length() -> void:
 	# First sample sits at x=0, y=start_y.
 	assert_vector(road.centerline[0]).is_equal_approx(Vector2(0.0, 200.0), Vector2(0.001, 0.001))
 	assert_float(road.half_width).is_equal_approx(150.0, 0.001)
+
+
+func test_build_course_straight_segment_stays_on_the_fall_line() -> void:
+	# A single slope-0 segment: x never leaves the axis, y descends by the length.
+	var road := RoadPath.build_course([{"length": 2000.0, "slope": 0.0}], 40.0, 200.0, 150.0)
+	assert_vector(road.centerline[0]).is_equal_approx(Vector2(0.0, 200.0), Vector2(0.001, 0.001))
+	for p in road.centerline:
+		assert_float(p.x).is_equal_approx(0.0, 0.001)
+	var last := road.centerline[road.centerline.size() - 1]
+	assert_float(last.y).is_equal_approx(-1800.0, 0.001)  # 200 - 2000
+
+
+func test_build_course_corner_shifts_laterally_then_a_straight_holds() -> void:
+	# Enter a right bend (slope -> +0.6), then a straight (slope back to 0).
+	var road := RoadPath.build_course(
+		[{"length": 1600.0, "slope": 0.6}, {"length": 1600.0, "slope": 0.0}], 40.0, 0.0, 150.0
+	)
+	var pts := road.centerline
+	var mid := pts[pts.size() / 2]
+	var last := pts[pts.size() - 1]
+	# The bend pushes x positive during the enter segment...
+	assert_float(mid.x).is_greater(50.0)
+	# ...and keeps drifting right through the exit (slope stays >= 0, easing to 0),
+	# never reversing.
+	assert_float(last.x).is_greater(mid.x)
+	# Monotonic descent throughout.
+	for i in range(pts.size() - 1):
+		assert_float(pts[i + 1].y).is_less(pts[i].y)
