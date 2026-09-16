@@ -52,6 +52,10 @@ func _ready() -> void:
 	posts.road_path = road_path
 	add_child(posts)
 
+	var finish := FinishGate3D.new()
+	finish.road_path = road_path
+	add_child(finish)
+
 	var rider := RiderBody3D.new()
 	rider.config = config
 	rider.road_path = road_path
@@ -67,6 +71,12 @@ func _ready() -> void:
 	var debug := DebugOverlay.new()
 	debug.target = rider
 	add_child(debug)
+
+	var finish_y: float = road_path.centerline[road_path.centerline.size() - 1].y
+	var hud := RunHud.new()
+	hud.target = rider
+	hud.timer = RunTimer.new(ROAD_START_Y, finish_y)
+	add_child(hud)
 
 
 # A simple procedural gradient sky (built-in, no art) to give a horizon.
