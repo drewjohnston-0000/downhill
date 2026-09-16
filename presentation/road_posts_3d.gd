@@ -10,7 +10,7 @@ extends Node3D
 ## (one draw call each) so hundreds of posts are nearly free. Presentation only —
 ## reads RoadPath + Terrain3D, never the sim. Set road_path before adding to tree.
 
-@export var spacing: float = 160.0          ## distance between posts along the road
+@export var spacing: float = 340.0          ## distance between posts along the road
 @export var margin: float = 22.0            ## how far outside the road edge they sit
 @export var post_height: float = 120.0
 @export var post_width: float = 7.0
