@@ -89,7 +89,6 @@ func _normal(i: int) -> Vector2:
 
 func _flat_material(color: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
 	m.albedo_color = color
 	return m

@@ -1,8 +1,8 @@
 extends Node3D
-## The game scene: the carving sim rendered chase-cam behind the rider, flat unlit
-## colours, no art yet. Builds the world from shared, pure data — a segment course
-## (RoadPath) and an elevation profile the sim and Terrain3D both read — plus
-## snow-depth posts for readability, a finish gate, and a run timer.
+## The game scene: the carving sim rendered chase-cam behind the rider, in solid
+## colours lit by a low sun (no textures yet). Builds the world from shared, pure
+## data — a segment course (RoadPath) and an elevation profile the sim and Terrain3D
+## both read — plus snow-depth posts for readability, a finish gate, and a run timer.
 
 const ROAD_SPACING := 40.0
 const ROAD_START_Y := 200.0
@@ -55,6 +55,7 @@ func _ready() -> void:
 	Terrain3D.profile = elevation
 
 	add_child(_make_sky())
+	add_child(_make_sun())
 
 	var road := RoadMesh3D.new()
 	road.road_path = road_path
@@ -92,17 +93,47 @@ func _ready() -> void:
 	add_child(hud)
 
 
-# A simple procedural gradient sky (built-in, no art) to give a horizon.
+# A procedural gradient sky plus atmosphere: soft skylight fill so shadows read
+# blue-grey (not black), and depth haze so the far hill fades instead of ending in
+# a hard edge. Built-in, no art. Together with the sun this turns the flat diagram
+# into a lit place. (Slice A of the painterly skin; see docs/painterly-skin-spec.md.)
 func _make_sky() -> WorldEnvironment:
 	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_horizon_color = Color(0.75, 0.85, 0.95)
-	sky_mat.sky_top_color = Color(0.30, 0.55, 0.90)
-	sky_mat.ground_horizon_color = Color(0.55, 0.70, 0.55)
+	sky_mat.sky_horizon_color = Color(0.78, 0.86, 0.93)
+	sky_mat.sky_top_color = Color(0.26, 0.52, 0.88)
+	# Below the horizon reads as pale haze (matching the fog), not a muddy band.
+	sky_mat.ground_horizon_color = Color(0.80, 0.86, 0.90)
+	sky_mat.ground_bottom_color = Color(0.74, 0.81, 0.85)
+	sky_mat.ground_curve = 0.02
 	var sky := Sky.new()
 	sky.sky_material = sky_mat
 	var env := Environment.new()
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
+	# Cool skylight fill so shadowed faces read blue-grey, not black.
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color(0.62, 0.72, 0.88)
+	env.ambient_light_energy = 0.5
+	# Distance haze: near ground crisp, far hill fades — atmospheric depth.
+	env.fog_enabled = true
+	env.fog_mode = Environment.FOG_MODE_DEPTH
+	env.fog_light_color = Color(0.80, 0.86, 0.93)
+	env.fog_depth_begin = 1500.0
+	env.fog_depth_end = 16000.0
+	env.fog_depth_curve = 0.6
+	env.fog_sky_affect = 0.0
 	var we := WorldEnvironment.new()
 	we.environment = env
 	return we
+
+
+# A warm, low directional sun casting shadows — turns flat fill into lit form.
+# (Slice A of the painterly skin; see docs/painterly-skin-spec.md.)
+func _make_sun() -> DirectionalLight3D:
+	var sun := DirectionalLight3D.new()
+	sun.rotation_degrees = Vector3(-48.0, 55.0, 0.0)
+	sun.light_color = Color(1.0, 0.93, 0.80)
+	sun.light_energy = 1.3
+	sun.shadow_enabled = true
+	sun.directional_shadow_max_distance = 4000.0
+	return sun

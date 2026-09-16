@@ -39,7 +39,6 @@ func _ready() -> void:
 	var mesh := MeshInstance3D.new()
 	mesh.mesh = box
 	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.albedo_color = Color(0.2, 0.45, 0.85)
 	mesh.material_override = mat
 	add_child(mesh)

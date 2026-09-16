@@ -2,8 +2,8 @@ class_name RoadMesh3D
 extends Node3D
 ## Builds the 3D road as flat-shaded ribbons from a RoadPath: a wide green grass
 ## band and the grey road on top, both following the centerline and the terrain
-## elevation. No art — solid unlit colours so the space reads. Set road_path
-## before adding to the tree.
+## elevation. No textures — solid colours, lit by the scene sun (normals generated).
+## Set road_path before adding to the tree.
 
 ## Half-width of the grass band flanking the road (world units).
 @export var grass_half_width: float = 2500.0
@@ -47,6 +47,7 @@ func _ribbon(half_width: float, y_offset: float, color: Color, follow_normal: bo
 		st.add_vertex(la)
 		st.add_vertex(rb)
 		st.add_vertex(ra)
+	st.generate_normals()  # so the sun has surface normals to light the ribbon
 	var mi := MeshInstance3D.new()
 	mi.mesh = st.commit()
 	mi.material_override = _flat_material(color)
@@ -72,7 +73,6 @@ func _edge(i: int, offset: float, follow_normal: bool) -> Vector3:
 
 func _flat_material(color: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
 	m.albedo_color = color
 	return m
