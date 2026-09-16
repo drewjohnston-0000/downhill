@@ -15,6 +15,8 @@ var state: RiderState = null
 var elevation: ElevationProfile = null
 ## Sim-plane start position; set by main3d before adding to the tree.
 var start_position: Vector2 = Vector2.ZERO
+## When true, the rider starts parked and must be kicked off (skate) to roll.
+var start_at_rest: bool = false
 
 var _agent: RiderAgent = null
 
@@ -22,7 +24,7 @@ var _agent: RiderAgent = null
 func _ready() -> void:
 	if config == null:
 		config = RiderConfig.new()
-	_agent = RiderAgent.new(config, road_path, start_position, elevation)
+	_agent = RiderAgent.new(config, road_path, start_position, elevation, start_at_rest)
 	state = _agent.state
 
 	var box := BoxMesh.new()

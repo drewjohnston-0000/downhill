@@ -40,6 +40,7 @@ func _ready() -> void:
 	rider.road_path = road_path
 	rider.elevation = elevation
 	rider.start_position = road_path.centerline[0]
+	rider.start_at_rest = true  # parked at the top; kick off (skate) to roll
 	add_child(rider)
 
 	var camera := ChaseCamera3D.new()

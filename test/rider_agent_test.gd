@@ -19,3 +19,20 @@ func test_agent_advance_updates_and_returns_state() -> void:
 	assert_object(returned).is_same(agent.state)
 	# Moved from the origin under gravity.
 	assert_bool(agent.state.position.is_equal_approx(Vector2.ZERO)).is_false()
+
+
+func test_start_at_rest_stays_parked_until_kicked_off() -> void:
+	var agent := RiderAgent.new(RiderConfig.new(), null, Vector2(5.0, 5.0), null, true)
+	assert_bool(agent.launched).is_false()
+	assert_float(agent.state.speed()).is_equal_approx(0.0, 0.0001)
+	# No input -> stays put even after many steps (gravity is gated too).
+	for _i in 60:
+		agent.advance(RiderInput.new(), DT)
+	assert_vector(agent.state.position).is_equal_approx(Vector2(5.0, 5.0), Vector2(0.001, 0.001))
+	assert_bool(agent.launched).is_false()
+	# A skate push kicks it off; from then on it rolls.
+	var kick := RiderInput.new()
+	kick.push = true
+	agent.advance(kick, DT)
+	assert_bool(agent.launched).is_true()
+	assert_float(agent.state.speed()).is_greater(0.0)

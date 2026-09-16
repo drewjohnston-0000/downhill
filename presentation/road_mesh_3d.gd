@@ -16,23 +16,26 @@ var road_path: RoadPath = null
 func _ready() -> void:
 	if road_path == null or road_path.centerline.size() < 2:
 		return
-	# Grass sits a touch below the road to avoid z-fighting.
-	add_child(_ribbon(grass_half_width, -1.0, grass_color))
-	add_child(_ribbon(road_path.half_width, 0.0, road_color))
+	# Grass sits a touch below the road to avoid z-fighting. It widens along world-X
+	# (not the road normal) so a wide band never samples elevation far down the hill.
+	add_child(_ribbon(grass_half_width, -1.0, grass_color, false))
+	add_child(_ribbon(road_path.half_width, 0.0, road_color, true))
 
 
 # A ribbon mesh (one quad per centerline segment) at the given half-width and
-# vertical offset, with a flat unlit material of the given colour.
-func _ribbon(half_width: float, y_offset: float, color: Color) -> MeshInstance3D:
+# vertical offset, with a flat unlit material of the given colour. When
+# follow_normal is true the ribbon widens along the road normal (so it curves with
+# the road); otherwise it widens along world-X (a flat ground band).
+func _ribbon(half_width: float, y_offset: float, color: Color, follow_normal: bool) -> MeshInstance3D:
 	var centerline := road_path.centerline
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var lift := Vector3(0.0, y_offset, 0.0)
 	for i in range(centerline.size() - 1):
-		var la := _edge(i, -half_width) + lift
-		var ra := _edge(i, half_width) + lift
-		var lb := _edge(i + 1, -half_width) + lift
-		var rb := _edge(i + 1, half_width) + lift
+		var la := _edge(i, -half_width, follow_normal) + lift
+		var ra := _edge(i, half_width, follow_normal) + lift
+		var lb := _edge(i + 1, -half_width, follow_normal) + lift
+		var rb := _edge(i + 1, half_width, follow_normal) + lift
 		# Two triangles per quad (material is double-sided, so winding is moot).
 		st.add_vertex(la)
 		st.add_vertex(lb)
@@ -46,14 +49,21 @@ func _ribbon(half_width: float, y_offset: float, color: Color) -> MeshInstance3D
 	return mi
 
 
-# World position of the road edge `offset` units sideways from centerline point i.
-func _edge(i: int, offset: float) -> Vector3:
+# World position of the ribbon edge `offset` units sideways from centerline point i.
+# Height comes from the edge point's own y (via to_world) so every vertex lies on
+# the true h(y) surface and road/grass can never cross. The road widens along its
+# normal (curves with the road); the grass widens along world-X, so its wide span
+# stays near the centerline's y instead of sampling elevation far down the hill.
+func _edge(i: int, offset: float, follow_normal: bool) -> Vector3:
 	var centerline := road_path.centerline
-	var a: int = maxi(i - 1, 0)
-	var b: int = mini(i + 1, centerline.size() - 1)
-	var tangent := centerline[b] - centerline[a]
-	var normal := Vector2.RIGHT if tangent.length() < 0.0001 else tangent.orthogonal().normalized()
-	return Terrain3D.to_world(centerline[i] + normal * offset)
+	var lateral := Vector2.RIGHT
+	if follow_normal:
+		var a: int = maxi(i - 1, 0)
+		var b: int = mini(i + 1, centerline.size() - 1)
+		var tangent := centerline[b] - centerline[a]
+		if tangent.length() >= 0.0001:
+			lateral = tangent.orthogonal().normalized()
+	return Terrain3D.to_world(centerline[i] + lateral * offset)
 
 
 func _flat_material(color: Color) -> StandardMaterial3D:
