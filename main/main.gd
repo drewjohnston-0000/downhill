@@ -87,6 +87,8 @@ func _ready() -> void:
 	camera.target = rider
 	add_child(camera)
 
+	add_child(CloudLayer2D.new())
+
 	var debug := DebugOverlay.new()
 	debug.target = rider
 	add_child(debug)

@@ -82,9 +82,14 @@ geometry, not the road — an accepted limit of flat shading (the palette/haze c
 ### Slice C — Splash content cues (optional; each sub-item its own tiny S)
 
 In priority order toward the splash:
-1. **White road lines** — centre dashes + gutter (edge) lines. (splash uses white,
-   not yellow.) Highest-impact, cheapest.
-2. **Soft clouds** — built-in `ProceduralSkyMaterial` cloud controls.
+1. **White road lines** (DONE) — dashed centre + solid gutter lines (`RoadLines3D`).
+   Splash uses white, not yellow. Highest-impact, cheapest.
+2. **Soft clouds** (DONE) — a **2D painterly layer**, not a sky feature: neither
+   `ProceduralSkyMaterial` nor `PhysicalSkyMaterial` has any cloud controls (verified).
+   `CloudLayer2D` draws flat two-tone cumulus in code (no shader, no texture) and
+   parallax-scrolls them by the camera's yaw/pitch — the "2D skin over 3D space"
+   thesis applied to the sky. Whitelist note: allows a **2D canvas layer** (still no
+   3D/sky/post shader).
 3. Distant ridge/headland silhouette · roadside foliage clumps · subtle colour grade.
 
 ## Non-goals — explicitly OUT this round (deferred XL)
