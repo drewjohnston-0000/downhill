@@ -61,6 +61,10 @@ func _ready() -> void:
 	road.road_path = road_path
 	add_child(road)
 
+	var lines := RoadLines3D.new()
+	lines.road_path = road_path
+	add_child(lines)
+
 	var posts := RoadPosts3D.new()
 	posts.road_path = road_path
 	add_child(posts)
