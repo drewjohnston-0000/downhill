@@ -2,9 +2,9 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			// Runs the project's own gdtoolkit gdlint (./lint.sh) — the SAME tool and
-			// gdlintrc config as CI, using your locally installed gdlint. Results show
-			// in the Problems panel. Run with Cmd+Shift+B (default build task).
+			// Manual "lint the whole project" fallback (Cmd+Shift+B) — same gdtoolkit
+			// gdlint + .gdlintrc as CI. Live per-file linting is handled by the
+			// EddieDover extension; this is here for a full-project sweep on demand.
 			"label": "gdlint",
 			"type": "shell",
 			"command": "./lint.sh",

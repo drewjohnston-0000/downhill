@@ -1,7 +1,10 @@
 {
-	// Recommended so live gdlint-on-save works (runs the gdlint task from tasks.json
-	// on every .gd save; see settings.json → triggerTaskOnSave).
 	"recommendations": [
-		"gruntfuggly.triggertaskonsave"
+		// Linter: runs system gdtoolkit gdlint + .gdlintrc = live editor linting
+		// identical to CI.
+		"eddiedover.gdscript-formatter-linter",
+		// Formatter (GDScript) + Godot language server.
+		"dohe.godot-format",
+		"geequlim.godot-tools"
 	]
 }

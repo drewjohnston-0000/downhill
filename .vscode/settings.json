@@ -1,19 +1,19 @@
 {
-	// Single source of truth for linting = gdlintrc, read by gdtoolkit gdlint.
-	// CI runs it; the editor runs the SAME tool against the SAME file via the
-	// on-save task below. CI cannot read VSCode settings, so NO lint rule is
-	// configured here — that would be a second config CI is blind to.
+	// LINTING — single source of truth, live in the editor AND identical to CI:
+	// EddieDover.gdscript-formatter-linter runs the system gdtoolkit `gdlint`, which
+	// reads .gdlintrc — the exact same tool and config file CI uses. gdlintPath is
+	// set explicitly because a macOS GUI app may not inherit ~/.local/bin on PATH
+	// (pipx install location); adjust if gdtoolkit lives elsewhere.
+	"godotFormatterAndLinter.gdlintPath": "/Users/drew/.local/bin/gdlint",
 
-	// Turn off dohe.godot-format's own bundled linter so it can't emit a second,
-	// conflicting set of warnings from a config CI never sees.
+	// dohe.godot-format ships a DIFFERENT linter (GDQuest, its own rules) — keep it
+	// off so there's one linter, and it's the one that matches CI.
 	"godotFormatter.enableLinter": false,
 
-	// Live linting: Trigger Task on Save (Gruntfuggly.triggertaskonsave) runs the
-	// "gdlint" task (tasks.json) on every .gd save; its problem matcher paints
-	// results into the Problems panel — same gdtoolkit + gdlintrc as CI.
-	"triggerTaskOnSave.tasks": {
-		"gdlint": ["**/*.gd"]
-	},
-	"triggerTaskOnSave.showStatusBarToggle": true,
-	"triggerTaskOnSave.restart": true
+	// FORMATTING stays on dohe (GDQuest); our files are already in that style, and
+	// formatting isn't CI-gated. Pin it as the default so the two installed
+	// formatters (dohe + EddieDover) don't conflict.
+	"[gdscript]": {
+		"editor.defaultFormatter": "dohe.godot-format"
+	}
 }
