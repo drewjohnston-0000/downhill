@@ -1,0 +1,7 @@
+{
+	// The dohe.godot-format extension ships its own gdscript-formatter and does NOT
+	// read gdlintrc, so its line length must be set here to match CI (gdtoolkit
+	// gdlint, gdlintrc: max-line-length 120). Keep these two in sync.
+	"godotFormatter.linterMaxLineLength": 120,
+	"godotFormatter.maxLineLength": 120
+}
