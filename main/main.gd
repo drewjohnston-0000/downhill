@@ -20,12 +20,16 @@ const COURSE := [
 	{"length": 1300.0, "slope": -0.70},  # chicane left
 	{"length": 1300.0, "slope": 0.70},   # chicane right
 	{"length": 1300.0, "slope": 0.0},    # (exit)
-	{"length": 3200.0, "slope": 0.0},    # long runout — top speed, tuck
+	{"length": 3200.0, "slope": 0.0},    # long straight — top speed, tuck
 	{"length": 1500.0, "slope": -0.85},  # tight left (enter, brake for it)
 	{"length": 1500.0, "slope": 0.0},    # (exit)
 	{"length": 1300.0, "slope": 0.45},   # gentle right sweeper (enter)
 	{"length": 1300.0, "slope": 0.0},    # (exit) — finish straight
 ]
+
+# Road past the finish line to coast/brake to a stop on (a runout apron), so
+# crossing the line at speed doesn't run you off the end of the built ground.
+const RUNOUT_LENGTH := 1200.0
 
 # Downhill elevation: a base grade with a gentle roll so the hill has real crests
 # (which hide the road ahead) and steep/shallow pitches (which vary speed).
@@ -36,7 +40,15 @@ const ELEV_ROLL_WAVELENGTH := 3000.0
 
 func _ready() -> void:
 	var config := RiderConfig.new()
-	var road_path := RoadPath.build_course(COURSE, ROAD_SPACING, ROAD_START_Y, ROAD_HALF_WIDTH)
+
+	# The finish is at the end of the race segments; the road continues past it as a
+	# runout so you have ground to brake to a stop on after crossing the line.
+	var race_length := 0.0
+	for seg in COURSE:
+		race_length += seg["length"]
+	var finish_y: float = ROAD_START_Y - race_length
+	var full_course: Array = COURSE + [{"length": RUNOUT_LENGTH, "slope": 0.0}]
+	var road_path := RoadPath.build_course(full_course, ROAD_SPACING, ROAD_START_Y, ROAD_HALF_WIDTH)
 
 	# One profile shared by the sim (fall-line pull) and Terrain3D (mesh height).
 	var elevation := ElevationProfile.new(ELEV_BASE_GRADE, ELEV_ROLL_AMP, TAU / ELEV_ROLL_WAVELENGTH)
@@ -54,6 +66,7 @@ func _ready() -> void:
 
 	var finish := FinishGate3D.new()
 	finish.road_path = road_path
+	finish.finish_y = finish_y
 	add_child(finish)
 
 	var rider := RiderBody3D.new()
@@ -62,6 +75,7 @@ func _ready() -> void:
 	rider.elevation = elevation
 	rider.start_position = road_path.centerline[0]
 	rider.start_at_rest = true  # parked at the top; kick off (skate) to roll
+	rider.finish_y = finish_y   # past the line: brake to a graceful stop, no void
 	add_child(rider)
 
 	var camera := ChaseCamera3D.new()
@@ -72,7 +86,6 @@ func _ready() -> void:
 	debug.target = rider
 	add_child(debug)
 
-	var finish_y: float = road_path.centerline[road_path.centerline.size() - 1].y
 	var hud := RunHud.new()
 	hud.target = rider
 	hud.timer = RunTimer.new(ROAD_START_Y, finish_y)

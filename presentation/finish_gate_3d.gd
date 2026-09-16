@@ -13,12 +13,15 @@ extends Node3D
 @export var post_color: Color = Color(0.10, 0.10, 0.12)
 
 var road_path: RoadPath = null
+## Fall-line y of the finish line; the gate is placed at the nearest centerline
+## point. Defaults to the course end if left unset.
+var finish_y: float = INF
 
 
 func _ready() -> void:
 	if road_path == null or road_path.centerline.size() < 2:
 		return
-	var i := road_path.centerline.size() - 1
+	var i := _finish_index()
 	var normal := _normal(i)
 	var hw := road_path.half_width + overhang
 	var left_base := Terrain3D.to_world(road_path.centerline[i] - normal * hw)
@@ -57,6 +60,21 @@ func _span(a: Vector3, b: Vector3, thickness: float, color: Color) -> MeshInstan
 	var y_axis := z_axis.cross(x_axis).normalized()
 	mi.transform = Transform3D(Basis(x_axis, y_axis, z_axis), a.lerp(b, 0.5))
 	return mi
+
+
+# Centerline index nearest finish_y (the course end when finish_y is unset).
+func _finish_index() -> int:
+	var cl := road_path.centerline
+	if finish_y == INF:
+		return cl.size() - 1
+	var best := 0
+	var best_d := INF
+	for i in range(cl.size()):
+		var d := absf(cl[i].y - finish_y)
+		if d < best_d:
+			best_d = d
+			best = i
+	return best
 
 
 func _normal(i: int) -> Vector2:

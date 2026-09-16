@@ -16,8 +16,16 @@ var elevation: ElevationProfile = null
 var start_position: Vector2 = Vector2.ZERO
 ## When true, the rider starts parked and must be kicked off (skate) to roll.
 var start_at_rest: bool = false
+## Fall-line y of the finish line; once past it the rider ignores input and brakes
+## to a graceful stop instead of coasting off into the void. Set by main.gd.
+var finish_y: float = -INF
 
 var _agent: RiderAgent = null
+
+
+## Has the rider crossed the finish line?
+func has_finished() -> bool:
+	return state != null and state.position.y <= finish_y
 
 
 func _ready() -> void:
@@ -39,11 +47,16 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	var steer: float = Input.get_axis("steer_left", "steer_right")
-	var input := RiderInput.new(steer)
-	input.push = Input.is_action_pressed("skate")
-	input.tuck = Input.is_action_pressed("tuck")
-	input.brake = Input.is_action_pressed("brake")
+	var input: RiderInput
+	if has_finished():
+		# Past the line: take over and brake straight to a graceful stop.
+		input = RiderInput.new(0.0)
+		input.brake = true
+	else:
+		input = RiderInput.new(Input.get_axis("steer_left", "steer_right"))
+		input.push = Input.is_action_pressed("skate")
+		input.tuck = Input.is_action_pressed("tuck")
+		input.brake = Input.is_action_pressed("brake")
 	state = _agent.advance(input, delta)
 	_apply()
 
