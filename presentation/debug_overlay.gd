@@ -4,18 +4,24 @@ extends CanvasLayer
 ## presentation and fully optional: it only reads state, never influences it, and
 ## removing it from the scene changes nothing about gameplay.
 ##   F3 - show/hide the readout
-##   E  - toggle telemetry recording; each recording samples once/sec to the
-##        console and its own timestamped file logs/physics<timestamp>.jsonl
-##        (one JSON object per line; Godot-style timestamp so runs never mix)
+##   E  - enable/disable auto-telemetry (on by default)
+## Telemetry records automatically for every run: it starts when the rider kicks
+## off and stops at the finish line, sampling once/sec to the console and its own
+## timestamped file logs/physics<timestamp>.jsonl (one JSON object per line;
+## Godot-style timestamp so runs never mix). So a whole descent — and only the
+## descent — is always captured, with no key-timing to get right.
 
 const LOG_DIR := "res://logs"
 const SAMPLE_INTERVAL := 1.0  # seconds between samples while recording
+const MOVING_SPEED := 1.0     # speed above which a run is considered under way
 
 ## The rider to inspect (exposes `state`, `config`, `road_path`) — RiderBody3D.
 var target: Node = null
 
 var _label: Label = null
-var _logging := false
+var _auto_enabled := true   # master switch (E); auto-record runs when on
+var _logging := false       # currently writing a run's file
+var _run_recorded := false  # this run has already been captured (until scene reload)
 var _sample_accum := 0.0
 var _sample_count := 0
 var _log_path := ""  # timestamped file for the current recording
@@ -37,19 +43,22 @@ func _input(event: InputEvent) -> void:
 	if event.keycode == KEY_F3:
 		_label.visible = not _label.visible
 	elif event.keycode == KEY_E:
-		_toggle_recording()
+		_auto_enabled = not _auto_enabled
+		if not _auto_enabled and _logging:
+			_stop_recording()
 
 
 func _process(delta: float) -> void:
 	if not _ready_to_read():
 		return
+	_update_auto_recording()
 	if _logging:
 		_sample_accum += delta
 		if _sample_accum >= SAMPLE_INTERVAL:
 			_sample_accum -= SAMPLE_INTERVAL
 			_write_sample()
 	if _label.visible:
-		var header := "F3 hide   E %s" % ("stop rec" if _logging else "record")
+		var header := "F3 hide   E telemetry %s" % ("on" if _auto_enabled else "off")
 		var lines := PackedStringArray([header])
 		if _logging:
 			lines.append("● REC  %d samples" % _sample_count)
@@ -57,18 +66,34 @@ func _process(delta: float) -> void:
 		_label.text = "\n".join(lines)
 
 
-func _toggle_recording() -> void:
-	_logging = not _logging
-	if _logging:
-		_sample_accum = 0.0
-		_sample_count = 0
-		# Timestamped filename, colons -> dots, matching Godot's own log naming.
-		var stamp := Time.get_datetime_string_from_system().replace(":", ".")
-		_log_path = "%s/physics%s.jsonl" % [LOG_DIR, stamp]
-		print("[physics] recording started -> %s (every %.0fs)" % [_log_path, SAMPLE_INTERVAL])
-		_write_sample()  # capture t0 immediately
-	else:
-		print("[physics] recording stopped (%d samples) -> %s" % [_sample_count, _log_path])
+# Drive the recording lifecycle from the run: start on kick-off, stop at finish.
+func _update_auto_recording() -> void:
+	if not _auto_enabled:
+		return
+	var finished: bool = target.has_method("has_finished") and target.has_finished()
+	if not _logging and not _run_recorded and not finished and target.state.speed() > MOVING_SPEED:
+		_start_recording()
+	elif _logging and finished:
+		_stop_recording()
+		_run_recorded = true
+
+
+func _start_recording() -> void:
+	_logging = true
+	_sample_accum = 0.0
+	_sample_count = 0
+	# Timestamped filename, colons -> dots, matching Godot's own log naming.
+	var stamp := Time.get_datetime_string_from_system().replace(":", ".")
+	_log_path = "%s/physics%s.jsonl" % [LOG_DIR, stamp]
+	print("[physics] recording started -> %s (every %.0fs)" % [_log_path, SAMPLE_INTERVAL])
+	_write_sample()  # capture t0 immediately
+
+
+func _stop_recording() -> void:
+	if not _logging:
+		return
+	_logging = false
+	print("[physics] recording stopped (%d samples) -> %s" % [_sample_count, _log_path])
 
 
 # Whether the rider and its state are available to read.
