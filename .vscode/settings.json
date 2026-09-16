@@ -1,15 +1,16 @@
 {
-	// Linting is done by gdtoolkit gdlint (./lint.sh + CI, configured by gdlintrc).
-	// The dohe.godot-format extension ships its own separate linter that ignores
-	// gdlintrc, so turn it off to avoid a second, conflicting set of warnings.
-	"godotFormatter.enableLinter": false,
-	// If its formatter is ever used, keep line length in step with gdlintrc (120).
-	"godotFormatter.maxLineLength": 120,
+	// Single source of truth for linting = gdlintrc, read by gdtoolkit gdlint.
+	// CI runs it; the editor runs the SAME tool against the SAME file via the
+	// on-save task below. CI cannot read VSCode settings, so NO lint rule is
+	// configured here — that would be a second config CI is blind to.
 
-	// Live linting: the "Trigger Task on Save" extension
-	// (Gruntfuggly.triggertaskonsave) runs the "gdlint" task (see tasks.json) on
-	// every .gd save. That task's problem matcher paints results into the Problems
-	// panel — so it's live AND uses the exact same gdtoolkit + gdlintrc as CI.
+	// Turn off dohe.godot-format's own bundled linter so it can't emit a second,
+	// conflicting set of warnings from a config CI never sees.
+	"godotFormatter.enableLinter": false,
+
+	// Live linting: Trigger Task on Save (Gruntfuggly.triggertaskonsave) runs the
+	// "gdlint" task (tasks.json) on every .gd save; its problem matcher paints
+	// results into the Problems panel — same gdtoolkit + gdlintrc as CI.
 	"triggerTaskOnSave.tasks": {
 		"gdlint": ["**/*.gd"]
 	},
