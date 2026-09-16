@@ -85,8 +85,10 @@ func _ready() -> void:
 
 	var camera := ChaseCamera3D.new()
 	camera.target = rider
+	camera.far = 6000.0  # room for the 3D vista backdrop ring (radius ~4000)
 	add_child(camera)
 
+	add_child(VistaBackdrop3D.new())
 	add_child(CloudLayer2D.new())
 
 	var debug := DebugOverlay.new()
@@ -108,9 +110,9 @@ func _make_sky() -> WorldEnvironment:
 	# Golden-hour sky (splash): warm cream/peach at the horizon, soft blue above.
 	sky_mat.sky_horizon_color = Color(0.96, 0.90, 0.78)
 	sky_mat.sky_top_color = Color(0.40, 0.60, 0.82)
-	# Below the horizon reads as warm pale haze, not a muddy band.
-	sky_mat.ground_horizon_color = Color(0.90, 0.88, 0.82)
-	sky_mat.ground_bottom_color = Color(0.82, 0.82, 0.78)
+	# Below the horizon is hazy green land (behind the vista ridges), not pale water.
+	sky_mat.ground_horizon_color = Color(0.80, 0.83, 0.72)
+	sky_mat.ground_bottom_color = Color(0.72, 0.78, 0.64)
 	sky_mat.ground_curve = 0.02
 	var sky := Sky.new()
 	sky.sky_material = sky_mat
@@ -126,7 +128,7 @@ func _make_sky() -> WorldEnvironment:
 	# receding headlands — the strongest painterly depth cue for flat geometry.
 	env.fog_enabled = true
 	env.fog_mode = Environment.FOG_MODE_DEPTH
-	env.fog_light_color = Color(0.88, 0.88, 0.83)
+	env.fog_light_color = Color(0.76, 0.80, 0.68)  # hazy green so the far ground reads as land
 	env.fog_depth_begin = 800.0
 	env.fog_depth_end = 14000.0
 	env.fog_depth_curve = 0.6
