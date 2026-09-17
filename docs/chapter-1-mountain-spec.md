@@ -213,7 +213,7 @@ Proof: `test/rider_gravity_test.gd` asserts the new pull equals the old fall-lin
 formula to 1e-6 on the baseline profile, and `height_field_test` shows the baseline
 course expressed as a road field reproduces the profile on the centreline. Main scene
 capture unchanged. Note: rebuild the class cache with the SAME Godot binary `test.sh`
-uses (`Godot_4.8.app`), not the dev6 editor, or new `class_name`s are invisible to tests.
+uses (now dev6 everywhere: editor, `test.sh`, CI), or new `class_name`s are invisible to tests.
 
 ### Slice 2 — The chapter 1 descent (L)
 

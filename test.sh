@@ -6,7 +6,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-GODOT_BIN="${GODOT_BIN:-/Applications/Godot_4.8.app/Contents/MacOS/Godot}"
+GODOT_BIN="${GODOT_BIN:-/Applications/Godot_4.8dev6.app/Contents/MacOS/Godot}"
 if [ ! -x "$GODOT_BIN" ]; then
 	echo "Godot binary not found at: $GODOT_BIN" >&2
 	echo "Set GODOT_BIN to your Godot executable." >&2
