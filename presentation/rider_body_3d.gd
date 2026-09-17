@@ -16,8 +16,8 @@ extends Node3D
 var config: RiderConfig = null
 var road_path: RoadPath = null
 var state: RiderState = null
-## Shared downhill profile (same object Terrain3D uses); set by main.gd.
-var elevation: ElevationProfile = null
+## Shared terrain height field (same object Terrain3D uses); set by main.gd.
+var field: HeightField = null
 ## Sim-plane start position; set by main.gd before adding to the tree.
 var start_position: Vector2 = Vector2.ZERO
 ## When true, the rider starts parked and must be kicked off (skate) to roll.
@@ -37,7 +37,7 @@ func has_finished() -> bool:
 func _ready() -> void:
 	if config == null:
 		config = RiderConfig.new()
-	_agent = RiderAgent.new(config, road_path, start_position, elevation, start_at_rest)
+	_agent = RiderAgent.new(config, road_path, start_position, field, start_at_rest)
 	state = _agent.state
 
 	if card_rider:

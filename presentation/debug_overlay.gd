@@ -118,11 +118,15 @@ func _metrics() -> Dictionary:
 	if target.road_path != null:
 		off = target.road_path.off_road_amount(s.position)
 
+	# Local downhill direction from the terrain (the sim's own gravity direction).
+	var grad := Terrain3D.field.gradient_at(s.position)
+	var downhill := (-grad).angle() if grad.length() > 0.0 else Vector2.UP.angle()
+
 	return {
 		"t": Time.get_ticks_msec() / 1000.0,
 		"speed": speed,
-		# Heading relative to the fall line: 0 = straight downhill, +right / -left.
-		"heading_deg": rad_to_deg(wrapf(s.heading - cfg.fall_line_dir.angle(), -PI, PI)),
+		# Heading relative to local downhill: 0 = straight downhill, +right / -left.
+		"heading_deg": rad_to_deg(wrapf(s.heading - downhill, -PI, PI)),
 		"lean": s.steer,
 		"lean_input": Input.get_axis("steer_left", "steer_right"),
 		"grip": cfg.grip_at(speed),

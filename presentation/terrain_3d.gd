@@ -5,16 +5,16 @@ extends RefCounted
 ## elevation profile. Every 3D node (road mesh, rider, camera) projects through
 ## here so they always agree.
 ##
-## Height comes from a shared ElevationProfile — the SAME object the sim reads for
-## its fall-line pull, so terrain and physics can never disagree. main.gd sets this
-## to the course profile; the default is a plain constant grade so Terrain3D also
-## works standalone (and matches the old Stage 0 look).
-static var profile: ElevationProfile = ElevationProfile.new(0.2, 0.0, 0.0)
+## Height comes from a shared HeightField — the SAME object the sim reads for its
+## gravity, so terrain and physics can never disagree. main.gd sets this to the
+## course field; the default is a plain constant grade so Terrain3D also works
+## standalone (and matches the old Stage 0 look).
+static var field: HeightField = ElevationProfile.new(0.2, 0.0, 0.0)
 
 
 ## Ground height (world Y) at a point in the sim plane.
 static func elevation(sim_pos: Vector2) -> float:
-	return profile.height(sim_pos.y)
+	return field.height_at(sim_pos)
 
 
 ## Lift a sim-plane point onto the 3D ground: sim x -> world X, sim y -> world Z,

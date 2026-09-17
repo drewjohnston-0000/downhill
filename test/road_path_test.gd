@@ -52,3 +52,35 @@ func test_build_course_corner_shifts_laterally_then_a_straight_holds() -> void:
 	# Monotonic descent throughout.
 	for i in range(pts.size() - 1):
 		assert_float(pts[i + 1].y).is_less(pts[i].y)
+
+
+func test_project_gives_arc_length_lateral_offset_and_interpolated_height() -> void:
+	var road := _straight_road()
+	road.heights = PackedFloat32Array([400.0, 200.0, 0.0])
+	var pr := road.project(Vector2(100.0, -500.0))
+	assert_float(pr["s"]).is_equal_approx(500.0, 0.001)
+	assert_float(absf(pr["n"])).is_equal_approx(100.0, 0.001)
+	assert_float(pr["lateral"]).is_equal_approx(100.0, 0.001)
+	assert_float(pr["height"]).is_equal_approx(300.0, 0.001)
+	assert_float(pr["camber"]).is_equal_approx(0.0, 0.001)
+	# Second segment, and the sign of n flips across the centreline.
+	var far := road.project(Vector2(-30.0, -1500.0))
+	assert_float(far["s"]).is_equal_approx(1500.0, 0.001)
+	assert_float(far["height"]).is_equal_approx(100.0, 0.001)
+	assert_float(signf(far["n"])).is_equal_approx(-signf(pr["n"]), 0.001)
+
+
+func test_assign_profile_sets_descending_heights_and_tilted_plane_camber() -> void:
+	var road := RoadPath.build_course(
+		[{"length": 1600.0, "slope": 0.6}, {"length": 1600.0, "slope": 0.0}], 40.0, 0.0, 150.0
+	)
+	var profile := ElevationProfile.new(0.22, 0.12, TAU / 3000.0)
+	road.assign_profile(profile)
+	assert_int(road.heights.size()).is_equal(road.centerline.size())
+	assert_int(road.cambers.size()).is_equal(road.centerline.size())
+	for i in range(road.centerline.size() - 1):
+		assert_float(road.heights[i + 1]).is_less_equal(road.heights[i])  # only descends
+	# Straight down the fall line the road is level across (no camber)...
+	assert_float(road.cambers[0]).is_equal_approx(0.0, 0.001)
+	# ...and in the bend, running across the tilted plane, it is cambered.
+	assert_float(absf(road.cambers[road.centerline.size() / 2])).is_greater(0.05)

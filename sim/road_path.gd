@@ -7,11 +7,95 @@ extends RefCounted
 
 var centerline: PackedVector2Array
 var half_width: float
+## Road surface height at each centerline point (empty = all zero). The road only
+## descends: heights are non-increasing along the path.
+var heights: PackedFloat32Array = PackedFloat32Array()
+## Camber at each point: height change per unit of lateral offset n across the
+## shelf (0 = a level shelf). Empty = all zero.
+var cambers: PackedFloat32Array = PackedFloat32Array()
 
 
 func _init(p_centerline: PackedVector2Array = PackedVector2Array(), p_half_width: float = 150.0) -> void:
 	centerline = p_centerline
 	half_width = p_half_width
+
+
+## Give the road the heights of a 1-D fall-line profile, with the camber the road
+## would have if it were simply painted onto that tilted plane (grade * normal.y).
+## This is how the baseline course is expressed in road-first terms: a RoadHeightField
+## built from it reproduces the profile exactly on the centerline.
+func assign_profile(profile: ElevationProfile) -> void:
+	heights = PackedFloat32Array()
+	cambers = PackedFloat32Array()
+	for i in range(centerline.size()):
+		var y := centerline[i].y
+		heights.append(profile.height(y))
+		cambers.append(profile.grade(y) * _normal_at(i).y)
+
+
+## Project a position onto the road: arc length `s`, signed lateral offset `n`, the
+## interpolated `height` and `camber` there, the unit `tangent`, `lateral` (true
+## distance to the nearest point, which differs from |n| only past the road's ends)
+## and `t_raw` (the unclamped segment parameter).
+func project(pos: Vector2) -> Dictionary:
+	var best := {"s": 0.0, "n": 0.0, "height": 0.0, "camber": 0.0,
+		"tangent": Vector2.UP, "lateral": INF}
+	if centerline.size() < 2:
+		return best
+	for i in range(centerline.size() - 1):
+		var pr := project_onto_segment(pos, i)
+		if pr["lateral"] < best["lateral"]:
+			best = pr
+	return best
+
+
+## Project onto one segment (clamped to its ends). Same keys as project().
+func project_onto_segment(pos: Vector2, i: int) -> Dictionary:
+	var a := centerline[i]
+	var b := centerline[i + 1]
+	var ab := b - a
+	var seg_len := ab.length()
+	var t_raw := 0.0
+	if seg_len > 0.0:
+		t_raw = (pos - a).dot(ab) / (seg_len * seg_len)
+	var t := clampf(t_raw, 0.0, 1.0)
+	var proj := a + ab * t
+	var tangent := ab / seg_len if seg_len > 0.0 else Vector2.UP
+	var normal := tangent.orthogonal()
+	return {
+		"s": _arc_length_to(i) + t * seg_len,
+		"n": (pos - proj).dot(normal),
+		"height": lerpf(_height_at_index(i), _height_at_index(i + 1), t),
+		"camber": lerpf(_camber_at_index(i), _camber_at_index(i + 1), t),
+		"tangent": tangent,
+		"lateral": pos.distance_to(proj),
+		"t_raw": t_raw,  # unclamped: < 0 or > 1 means the foot fell off this segment's end
+	}
+
+
+func _height_at_index(i: int) -> float:
+	return heights[i] if i < heights.size() else 0.0
+
+
+func _camber_at_index(i: int) -> float:
+	return cambers[i] if i < cambers.size() else 0.0
+
+
+func _arc_length_to(index: int) -> float:
+	var s := 0.0
+	for i in range(index):
+		s += centerline[i].distance_to(centerline[i + 1])
+	return s
+
+
+# Unit normal at centerline point i (perpendicular to the local tangent).
+func _normal_at(i: int) -> Vector2:
+	var a: int = maxi(i - 1, 0)
+	var b: int = mini(i + 1, centerline.size() - 1)
+	var tangent := centerline[b] - centerline[a]
+	if tangent.length() < 0.0001:
+		return Vector2.RIGHT
+	return tangent.normalized().orthogonal()
 
 
 ## Shortest distance from a world position to the centerline polyline.

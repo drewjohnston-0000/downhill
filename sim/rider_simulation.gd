@@ -5,7 +5,10 @@ extends RefCounted
 ## no randomness — so it is deterministic and unit-testable without a scene.
 ##
 ## Model: "fall-line + grip", tuned forgiving (see RiderConfig).
-##   1. Gravity accelerates velocity along a fixed world downhill direction.
+##   1. Gravity accelerates velocity downhill: along the negative gradient of the
+##      terrain height field, scaled by local steepness over the course's typical
+##      grade. On a plain slope that is a fixed direction; on real terrain it turns
+##      with the hill (and, if the road is cambered, pulls across it).
 ##   2. Steering rotates the board's heading (easier at low speed).
 ##   3. Grip bleeds off the sideways component of velocity so travel tracks the
 ##      heading. High grip = the board goes where you point (forgiving), and it
@@ -20,19 +23,20 @@ var config: RiderConfig
 ## Left null in most unit tests (no off-road effect).
 var road_path: RoadPath = null
 
-## Downhill elevation profile. Its grade scales the fall-line pull (steep = faster,
-## flat = you bleed speed). Defaults to flat, so gravity is applied unchanged.
-var elevation: ElevationProfile = null
+## The terrain. Gravity pulls down its gradient, scaled by steepness (steep = faster,
+## flat = you bleed speed). Defaults to a uniform slope down -y, so gravity is applied
+## unchanged and tests without terrain behave as before.
+var field: HeightField = null
 
 
 func _init(
 	p_config: RiderConfig = null,
 	p_road_path: RoadPath = null,
-	p_elevation: ElevationProfile = null,
+	p_field: HeightField = null,
 ) -> void:
 	config = p_config if p_config != null else RiderConfig.new()
 	road_path = p_road_path
-	elevation = p_elevation if p_elevation != null else ElevationProfile.flat()
+	field = p_field if p_field != null else ElevationProfile.uniform()
 
 
 ## Advance the simulation by dt seconds. Returns a NEW state; the input state is
@@ -40,11 +44,12 @@ func _init(
 func step(state: RiderState, input: RiderInput, dt: float) -> RiderState:
 	var next := state.duplicate_state()
 
-	# 1. Gravity pulls along the fall line, scaled by the local grade: steep
-	#    pitches accelerate, flat runouts pull weakly so you bleed speed. Uses the
-	#    position BEFORE this step, matching how turn rate reads pre-step speed.
-	var pull := config.gravity * elevation.pull_factor(state.position.y)
-	next.velocity += config.fall_line_dir.normalized() * pull * dt
+	# 1. Gravity pulls downhill (minus the terrain gradient), scaled by the local
+	#    grade over the course's typical grade: steep pitches accelerate, flat
+	#    runouts pull weakly so you bleed speed. Uses the position BEFORE this step,
+	#    matching how turn rate reads pre-step speed.
+	var downhill := -field.gradient_at(state.position) / field.reference_grade()
+	next.velocity += downhill * config.gravity * dt
 
 	# 2. Steering rotates the heading. The applied lean eases toward the input
 	#    (led-into carves, not twitchy); turn rate uses speed BEFORE this step's

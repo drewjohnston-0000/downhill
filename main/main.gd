@@ -50,9 +50,10 @@ func _ready() -> void:
 	var full_course: Array = COURSE + [{"length": RUNOUT_LENGTH, "slope": 0.0}]
 	var road_path := RoadPath.build_course(full_course, ROAD_SPACING, ROAD_START_Y, ROAD_HALF_WIDTH)
 
-	# One profile shared by the sim (fall-line pull) and Terrain3D (mesh height).
+	# One height field shared by the sim (gravity) and Terrain3D (mesh height). The
+	# baseline course is a 1-D profile: gravity is exactly the old fall-line pull.
 	var elevation := ElevationProfile.new(ELEV_BASE_GRADE, ELEV_ROLL_AMP, TAU / ELEV_ROLL_WAVELENGTH)
-	Terrain3D.profile = elevation
+	Terrain3D.field = elevation
 
 	add_child(_make_sky())
 	add_child(_make_sun())
@@ -77,7 +78,7 @@ func _ready() -> void:
 	var rider := RiderBody3D.new()
 	rider.config = config
 	rider.road_path = road_path
-	rider.elevation = elevation
+	rider.field = elevation
 	rider.start_position = road_path.centerline[0]
 	rider.start_at_rest = true  # parked at the top; kick off (skate) to roll
 	rider.finish_y = finish_y   # past the line: brake to a graceful stop, no void

@@ -9,14 +9,9 @@ extends Resource
 ##
 ## Units are world units (~pixels for this 2D prototype) and seconds.
 
-## World-space "downhill" direction. Gravity accelerates the rider along this.
-## We use -Y (UP the screen) as downhill/forward: in a top-down descent the road
-## ahead reads best at the top of the screen with the rider kept low. "Downhill"
-## is simply the travel/accel direction; the camera renders it going into the
-## distance (upward).
-@export var fall_line_dir: Vector2 = Vector2.UP
-
-## Acceleration along the fall line. Higher = builds speed faster.
+## Downhill acceleration on ground of the course's reference grade (see
+## HeightField.reference_grade). Higher = builds speed faster. Direction comes from
+## the terrain: gravity pulls down the height field's gradient.
 @export var gravity: float = 60.0
 
 ## Absolute safety cap on speed. Set above the passive gravity cruise (~gravity/

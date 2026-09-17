@@ -202,6 +202,19 @@ run on the old course reproduces the old trajectory within epsilon; road height
 monotone; `project` round-trips known `(s, n)` points. Telemetry baseline run matches.
 Then delete `ElevationProfile`, `fall_line_dir`, `pull_factor`.
 
+**Slice 1 landed 2026-09-17.** `HeightField` (sim) with central-difference gradient and
+`reference_grade()`; `ElevationProfile` is now a field with an analytic gradient and is
+kept as the baseline course's terrain (not deleted: it is the reference the proof runs
+against). `RoadHeightField` is the road-first field (exact shelf, camber, cross-section,
+per-segment blend with joint ownership, mean-grade reference). `RoadPath` gains
+heights, cambers, `project()` and `assign_profile()`. Gravity is
+`-gradient / reference_grade * gravity`; `fall_line_dir` and `pull_factor` are gone.
+Proof: `test/rider_gravity_test.gd` asserts the new pull equals the old fall-line
+formula to 1e-6 on the baseline profile, and `height_field_test` shows the baseline
+course expressed as a road field reproduces the profile on the centreline. Main scene
+capture unchanged. Note: rebuild the class cache with the SAME Godot binary `test.sh`
+uses (`Godot_4.8.app`), not the dev6 editor, or new `class_name`s are invisible to tests.
+
 ### Slice 2 — The chapter 1 descent (L)
 
 A designed path: ridge start, long open traverse with the bay in view, two switchbacks,

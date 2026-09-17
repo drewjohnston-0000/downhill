@@ -24,12 +24,14 @@ func _init(
 	p_config: RiderConfig = null,
 	p_road_path: RoadPath = null,
 	p_start_position: Vector2 = Vector2.ZERO,
-	p_elevation: ElevationProfile = null,
+	p_field: HeightField = null,
 	p_start_at_rest: bool = false,
 ) -> void:
 	config = p_config if p_config != null else RiderConfig.new()
-	_sim = RiderSimulation.new(config, p_road_path, p_elevation)
-	var start_dir := config.fall_line_dir.normalized()
+	_sim = RiderSimulation.new(config, p_road_path, p_field)
+	# Face downhill at the start: minus the terrain gradient there.
+	var grad := _sim.field.gradient_at(p_start_position)
+	var start_dir := (-grad).normalized() if grad.length() > 0.0 else Vector2.UP
 	var start_speed := 0.0 if p_start_at_rest else ROLL_START_SPEED
 	state = RiderState.new(p_start_position, start_dir * start_speed, start_dir.angle())
 	launched = not p_start_at_rest

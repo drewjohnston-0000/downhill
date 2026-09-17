@@ -1,15 +1,14 @@
 class_name ElevationProfile
-extends RefCounted
-## Pure 1-D downhill profile along the fall-line axis (sim y). The whole hillside
-## tilts toward -y; this says how STEEP that tilt is at each point down the slope.
+extends HeightField
+## A 1-D downhill profile along the fall-line axis (sim y), as a HeightField: the
+## whole hillside tilts toward -y and this says how STEEP that tilt is at each point.
 ##
-##   height(y)      -> world elevation (Terrain3D reads this to build the mesh)
-##   grade(y)       -> local steepness dh/dy (kept > 0: no uphill in this stage)
-##   pull_factor(y) -> gravity multiplier = grade(y) / base_grade (~1 near the mean)
+##   height(y) -> world elevation;  grade(y) -> steepness dh/dy (kept > 0: no uphill)
 ##
-## Because grade varies only with y, the fall line keeps its FIXED direction and
-## only its STRENGTH changes: steep pitches accelerate, flat runouts bleed speed.
-## Side-to-side camber/banking is a later stage (that needs a 2-D height field).
+## Because height varies only with y, the gradient is exactly (0, grade(y)): the fall
+## line keeps a fixed direction and only its strength changes. This is the baseline
+## course's terrain and the reference the new gradient-driven gravity is proven
+## against (see the equivalence tests).
 ##
 ## Model: a base slope plus one gentle sinusoidal roll, so grade and height are
 ## smooth and have a clean analytic derivative (grade IS dh/dy exactly).
@@ -27,10 +26,10 @@ func _init(p_base_grade: float = 0.0, p_roll_amp: float = 0.0, p_roll_freq: floa
 	roll_freq = p_roll_freq
 
 
-## A flat world: no elevation, gravity pull unchanged (pull_factor == 1). The
-## default everywhere, so the 2-D game and the existing sim tests are untouched.
-static func flat() -> ElevationProfile:
-	return ElevationProfile.new()
+## A uniform slope of unit grade: gravity applies unchanged, straight down -y,
+## everywhere. The sim's default, so tests without terrain behave as before.
+static func uniform() -> ElevationProfile:
+	return ElevationProfile.new(1.0)
 
 
 ## World elevation at fall-line position y.
@@ -48,9 +47,14 @@ func grade(y: float) -> float:
 	return base_grade + roll_amp * cos(roll_freq * y)
 
 
-## Gravity multiplier at y: steeper than the mean pulls harder, flatter pulls less.
-## Returns 1.0 for a flat/degenerate profile so gravity is applied unchanged.
-func pull_factor(y: float) -> float:
-	if base_grade <= 0.0:
-		return 1.0
-	return grade(y) / base_grade
+func height_at(pos: Vector2) -> float:
+	return height(pos.y)
+
+
+## Analytic: height depends on y only, so the slope is straight down the fall line.
+func gradient_at(pos: Vector2) -> Vector2:
+	return Vector2(0.0, grade(pos.y))
+
+
+func reference_grade() -> float:
+	return base_grade if base_grade > 0.0 else 1.0

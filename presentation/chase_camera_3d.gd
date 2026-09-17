@@ -66,7 +66,7 @@ func _physics_process(delta: float) -> void:
 	var rider_elev := Terrain3D.elevation(state.position)
 	var behind := Terrain3D.to_world(state.position - _forward * distance)
 	var ahead := Terrain3D.to_world(state.position + _forward * look_ahead)
-	var slope_drop := Terrain3D.profile.base_grade * look_ahead
+	var slope_drop := Terrain3D.field.reference_grade() * look_ahead
 
 	var target_y := maxf(rider_elev + height, behind.y + min_clearance)
 	var look_pos := Vector3(ahead.x, rider_elev + look_height - slope_drop, ahead.z)
