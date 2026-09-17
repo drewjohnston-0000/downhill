@@ -174,6 +174,24 @@ Acceptance: (1) the horizon is in the top third; (2) a lower tier of the path is
 visible below the rider; (3) the sea reads as far below; (4) a naive viewer says "I
 want to go down there". If three iterations fail this, stop and rethink before Slice 1.
 
+**Slice 0 landed 2026-09-17** as `main/spike.tscn` (`spike.gd`), three iterations, kept
+until Slice 2 replaces it. Captures: `logs/spike_summit.png` (whole descent, town and
+sea below), `logs/spike_switchback.png` (reel composition past the first hairpin).
+Criteria 1 to 3 met on capture; criterion 4 is the user's call on playing it. Findings
+that feed Slices 1 to 3:
+- The road-first shelf (flatten the mountain onto the path within ~45 units, ease
+  back over ~260) is what makes the path sit in the slope. Do it in the height field.
+- A coarse far grid cannot resolve the shelf between vertices. The exact near strip
+  in `(s, n)` with the grid pushed down beneath it works; keep that split.
+- At a hairpin the two tiers are within the blend distance and the nearest-point
+  rule picks one tier, terracing the other. The height field must blend against
+  *all* nearby path segments (take the lowest shelf, or blend by inverse distance).
+- The camera needs a ground floor (never below terrain plus clearance) at the summit.
+- A steep upper mountain (about 34 degrees at the top, easing to the coast) is what
+  makes the world fall away. Gentle slopes read as a lawn.
+- With the camera 105 back and 80 up looking 21 degrees down, the horizon lands at 20
+  to 30 percent and the rider at about a third of frame height. Slice 3 goes closer.
+
 ### Slice 1 — Height field gravity + equivalence proof (M, no visible change)
 
 `HeightField`, `RoadPath.project`, per-point height/camber, gradient-driven gravity.

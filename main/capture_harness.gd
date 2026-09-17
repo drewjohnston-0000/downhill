@@ -2,6 +2,7 @@ extends Node
 ## Dev tool: run the game unattended and save frames for capture-driven art work.
 ##   Godot --path . res://main/capture_harness.tscn
 ## Env: CAPTURE_NAME (default "cap"), CAPTURE_FRAMES (comma list, default "90,240"),
+## CAPTURE_SCENE (default res://main/main.tscn),
 ## CAPTURE_STEER_AT (frame to start holding steer_left; default 0 = never).
 ## Frames are saved to res://logs/<name>_<frame>.png (logs/ is gitignored).
 
@@ -21,7 +22,10 @@ func _ready() -> void:
 	for part in spec.split(","):
 		_frames.append(int(part))
 	_steer_at = int(OS.get_environment("CAPTURE_STEER_AT"))
-	add_child(load("res://main/main.tscn").instantiate())
+	var scene := OS.get_environment("CAPTURE_SCENE")
+	if scene.is_empty():
+		scene = "res://main/main.tscn"
+	add_child(load(scene).instantiate())
 
 
 func _process(_delta: float) -> void:
