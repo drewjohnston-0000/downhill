@@ -89,7 +89,7 @@ func _ready() -> void:
 	add_child(camera)
 
 	add_child(VistaBackdrop3D.new())
-	add_child(CloudLayer2D.new())
+	add_child(CloudCards3D.new())
 
 	var debug := DebugOverlay.new()
 	debug.target = rider
