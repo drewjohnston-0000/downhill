@@ -220,8 +220,8 @@ imported at 512x1024 with alpha-coverage mipmaps) on Sprite3Ds that face the cam
 around Y; `RiderBody3D` now carries a deck with wheels that yaws with heading, the box
 kept behind `card_rider = false`. Captures: `logs/rider_card_straight.png`,
 `logs/rider_card_carve.png`. Found: the 2-D cloud layer draws over the rider's head
-when she stands against the sky. Clouds must become depth-tested (3-D cards near the
-vista ring) before Slice 3 raises the horizon. 5b (springs) still open.
+when she stands against the sky. **Fixed:** `CloudCards3D` replaces the canvas layer
+with depth-tested cards beyond the vista ring. 5b (springs) still open.
 
 Promoted from chapter 2 because the clip shows it is cheaper than "character
 animation". The rider is a back-view **layered card stack** (deck, legs, torso with
