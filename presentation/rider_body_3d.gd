@@ -1,11 +1,17 @@
 class_name RiderBody3D
 extends Node3D
 ## 3D presentation of the rider. Runs the shared RiderAgent, reads the input
-## actions, and drops a placeholder box on the road. Exposes state/config/road_path
-## so the camera and debug overlay can read it.
+## actions, and puts the rider on the road: a deck with wheels that yaws with the
+## board's heading, carrying a RiderCard3D (painted back-view card stack that faces
+## the camera). The old placeholder box stays behind `card_rider` as the known-good
+## baseline. Exposes state/config/road_path so the camera and debug overlay can read it.
 
-## Height of the box centre above the road surface.
+## Height of this node's origin above the road surface.
 @export var ride_height: float = 14.0
+## True: deck + painted card stack. False: the original blue box.
+@export var card_rider: bool = true
+@export var deck_color: Color = Color(0.79, 0.48, 0.23)   ## warm orange-brown deck (clip)
+@export var wheel_color: Color = Color(0.91, 0.54, 0.18)  ## orange urethane
 
 var config: RiderConfig = null
 var road_path: RoadPath = null
@@ -34,18 +40,55 @@ func _ready() -> void:
 	_agent = RiderAgent.new(config, road_path, start_position, elevation, start_at_rest)
 	state = _agent.state
 
+	if card_rider:
+		_build_deck_and_card()
+	else:
+		_build_box()
+	_apply()
+
+
+# The original placeholder: a blue box elongated along travel (-Z) so yaw reads.
+func _build_box() -> void:
 	var box := BoxMesh.new()
-	box.size = Vector3(20.0, 24.0, 46.0)  # elongated along travel (-Z) so yaw reads
-	var mesh := MeshInstance3D.new()
-	mesh.mesh = box
+	box.size = Vector3(20.0, 24.0, 46.0)
+	_mesh(box, Color(0.2, 0.45, 0.85), Vector3.ZERO)
+
+
+# A longboard deck on four wheels, resting on the road under this node's origin,
+# with the card stack standing on the deck top. Deck length matches the old box.
+func _build_deck_and_card() -> void:
+	var ground := -ride_height  # local y of the road surface
+	var wheel_r := 2.4
+	var deck_t := 1.8
+	var deck := BoxMesh.new()
+	deck.size = Vector3(10.0, deck_t, 46.0)
+	var deck_y := ground + wheel_r * 2.0 + deck_t * 0.5
+	_mesh(deck, deck_color, Vector3(0.0, deck_y, 0.0))
+	var wheel := CylinderMesh.new()
+	wheel.top_radius = wheel_r
+	wheel.bottom_radius = wheel_r
+	wheel.height = 3.0
+	for x in [-5.0, 5.0]:
+		for z in [-15.0, 15.0]:
+			var w := _mesh(wheel, wheel_color, Vector3(x, ground + wheel_r, z))
+			w.rotation_degrees.z = 90.0  # cylinder axis along X: rolls along Z
+	var card := RiderCard3D.new()
+	card.position = Vector3(0.0, deck_y + deck_t * 0.5, 0.0)
+	add_child(card)
+
+
+func _mesh(mesh: Mesh, color: Color, at: Vector3) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.position = at
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.2, 0.45, 0.85)
+	mat.albedo_color = color
 	# Cel look: a hard light/shadow terminator (banded), matte (no highlights).
 	mat.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
 	mat.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
-	mesh.material_override = mat
-	add_child(mesh)
-	_apply()
+	mi.material_override = mat
+	add_child(mi)
+	return mi
 
 
 func _physics_process(delta: float) -> void:
