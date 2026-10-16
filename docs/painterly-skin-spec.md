@@ -37,7 +37,7 @@ frame — two specific stills, not a vibe.
   a clean git checkpoint before each slice) so we always have a known-good baseline.
 - **Capture-driven.** Iterate on rendered frames via the screenshot harness, never
   blind commits. Checkpoint after each slice.
-- **Native Metal / Forward+** (Godot 4.8-dev6; dev5's Metal crash is fixed). No
+- **Native Metal / Forward+** (Godot 4.8-beta1; dev5's Metal crash is fixed since dev6). No
   rendering feature that needs a driver or pipeline we can't run on it.
 
 ## Stop-condition (because there is no CI-green here)
